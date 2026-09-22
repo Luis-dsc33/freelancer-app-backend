@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Resenas.Api/Resenas.Api.csproj" />
+  <Project Path="Resenas.Application/Resenas.Application.csproj" Id="6ace173d-f758-4435-a74d-ceb24f83dcc9" />
+  <Project Path="Resenas.Domain/Resenas.Domain.csproj" Id="fe6bda9c-3fa6-4e03-a8c6-9813a3ecb562" />
+  <Project Path="Resenas.Infrastructure/Resenas.Infrastructure.csproj" Id="aff45112-0450-4ae6-90ac-7c758fdfac9d" />
+</Solution>

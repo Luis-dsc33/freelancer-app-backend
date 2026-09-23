@@ -63,15 +63,24 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+
 // Aplicar migraciones automáticamente
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
-    db.Database.Migrate();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
+        db.Database.Migrate();
+        logger.LogInformation("Migraciones aplicadas correctamente.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al aplicar migraciones de Entity Framework.");
+    }
 }
 
 app.Run();

@@ -67,4 +67,11 @@ app.UseHttpsRedirection();
 app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+// Aplicar migraciones automáticamente
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
+    db.Database.Migrate();
+}
+
 app.Run();

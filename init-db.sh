@@ -3,14 +3,7 @@ set -e
 
 # Script de inicialización de PostgreSQL.
 # Se ejecuta automáticamente SOLO la primera vez que se crea el contenedor.
-# Crea las bases de datos individuales para cada microservicio.
+# Ya no se crean bases separadas: todos los microservicios comparten
+# la misma BD ($POSTGRES_DB) y se separan por schemas.
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE freelancer_usuarios;
-    CREATE DATABASE freelancer_admin;
-    CREATE DATABASE freelancer_chat;
-    CREATE DATABASE freelancer_marketplace;
-    CREATE DATABASE freelancer_resenas;
-EOSQL
-
-echo "✅ Todas las bases de datos creadas correctamente."
+echo "✅ Base de datos '$POSTGRES_DB' lista. Los schemas se crean vía EF Core migrations."

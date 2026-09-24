@@ -53,6 +53,20 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// -- EMMA 23/09/2026: SE AGREGO LO DE CORS PARA QUE EL FRONT PUEDA CONSUMIR EL API
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:8100",           // ESTE ES DESARROLLO LOCAL
+                "https://falta-dominio-frontend.com"  // AJUSTAMOS ESTE PA CUANDO YA ESTE ARRIBA 
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -63,6 +77,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("FrontendPolicy");
 app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();

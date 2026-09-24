@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using FluentValidation;
+using Usuarios.Application.Exceptions;
 
 namespace Usuarios.Api.Middleware;
 
@@ -28,6 +29,16 @@ public class ExceptionHandlingMiddleware
             context.Response.ContentType = "application/json";
             var errores = ex.Errors.Select(e => new { campo = e.PropertyName, mensaje = e.ErrorMessage });
             await context.Response.WriteAsync(JsonSerializer.Serialize(new { errores }));
+        }
+        catch (EmailDeliveryException ex)
+        {
+            _logger.LogError(ex, "No se pudo completar el envío del correo de recuperación");
+            context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new
+            {
+                error = "No se pudo procesar la solicitud en este momento. Inténtalo más tarde."
+            }));
         }
         catch (InvalidOperationException ex)
         {

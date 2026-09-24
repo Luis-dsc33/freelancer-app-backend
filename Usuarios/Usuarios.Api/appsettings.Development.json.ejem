@@ -7,5 +7,17 @@
     "Issuer": "CodeBridge",
     "Audience": "CodeBridgeUsuarios",
     "ExpiraMinutos": 60
+  },
+  "PasswordReset": {
+    "ExpiresInMinutes": 30,
+    "ResetPageUrl": "http://localhost:8100/restablecer-password"
+  },
+  "Smtp": {
+    "Host": "localhost",
+    "Port": 1025,
+    "Username": "",
+    "Password": "",
+    "FromEmail": "no-reply@codebridge.local",
+    "FromName": "CodeBridge"
   }
 }

@@ -21,8 +21,11 @@ public class UsuarioRepository : IUsuarioRepository
     public async Task<List<Usuario>> ObtenerTodosAsync() =>
         await _context.Usuarios.ToListAsync();
 
-    public async Task<Usuario?> ObtenerPorEmailAsync(string email) =>
-    await _context.Usuarios
-        .Include(u => u.Rol) 
-        .FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<Usuario?> ObtenerPorEmailAsync(string email)
+    {
+        var emailNormalizado = email.Trim().ToLowerInvariant();
+        return await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == emailNormalizado);
+    }
 }

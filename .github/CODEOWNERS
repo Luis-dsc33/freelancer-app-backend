@@ -1,0 +1,21 @@
+# ──────────────────────────────────────────────
+#  CODEOWNERS — freelancer-app-backend
+#  Revisores técnicos obligatorios por área
+# ──────────────────────────────────────────────
+
+# Configuración de CI/CD y gobernanza del repositorio
+/.github/                       @Luis-dsc33
+
+# Infraestructura: Docker, Nginx, scripts de BD
+/docker-compose.yml             @Luis-dsc33
+/nginx/                         @Luis-dsc33
+/init-db.sh                     @Luis-dsc33
+Dockerfile                      @Luis-dsc33
+
+# Microservicios — capas de Infrastructure y Api (cambios críticos)
+/Usuarios/Usuarios.Infrastructure/   @Luis-dsc33
+/Usuarios/Usuarios.Api/              @Luis-dsc33
+/Marketplace/                        @Luis-dsc33
+/Chat/                               @Luis-dsc33
+/Resenas/                            @Luis-dsc33
+/Admin/                              @Luis-dsc33

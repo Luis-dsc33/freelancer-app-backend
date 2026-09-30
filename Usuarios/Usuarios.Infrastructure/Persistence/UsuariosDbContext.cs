@@ -10,6 +10,7 @@ public class UsuariosDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<RecuperacionContrasena> RecuperacionesContrasena => Set<RecuperacionContrasena>();
+    public DbSet<PerfilEstudiante> PerfilesEstudiante => Set<PerfilEstudiante>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

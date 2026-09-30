@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,8 +32,9 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContrasenaRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
+builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
 
-// --- Autenticación JWT ---
+// --- AutenticaciÃ³n JWT ---
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -50,7 +51,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
-// --- fin de autenticación JWT ---
+// --- fin de autenticaciÃ³n JWT ---
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -85,7 +86,7 @@ app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 
-// Aplicar migraciones automáticamente
+// Aplicar migraciones automÃ¡ticamente
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();

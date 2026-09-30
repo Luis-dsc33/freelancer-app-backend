@@ -1,9 +1,10 @@
 ﻿using MediatR;
 using Usuarios.Application.Interfaces;
+using Usuarios.Domain.Entities;
 
 namespace Usuarios.Application.Queries.ObtenerPerfil;
 
-public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEstudianteDto?>
+public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEstudianteDto>
 {
     private readonly IPerfilEstudianteRepository _repository;
 
@@ -12,27 +13,25 @@ public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEs
         _repository = repository;
     }
 
-    public async Task<PerfilEstudianteDto?> Handle(ObtenerPerfilQuery request, CancellationToken cancellationToken)
+    public async Task<PerfilEstudianteDto> Handle(ObtenerPerfilQuery request, CancellationToken cancellationToken)
     {
         var perfil = await _repository.ObtenerPorUsuarioIdAsync(request.UsuarioId);
+        var obligatorios = PerfilEstudiante.CamposObligatorios.ToList();
 
-        if (perfil == null)
+        // Primer ingreso: todavía no existe perfil, todos los campos están pendientes
+        if (perfil is null)
         {
             return new PerfilEstudianteDto
             {
                 Id = null,
                 UsuarioId = request.UsuarioId,
-                Carrera = string.Empty,
-                Habilidades = new List<string>(),
-                Descripcion = string.Empty,
                 EsPerfilCompleto = false,
-                CamposObligatorios = new List<string> { "Carrera", "Habilidades", "Descripcion" }
+                CamposObligatorios = obligatorios,
+                CamposFaltantes = obligatorios.ToList()
             };
         }
 
-        bool esCompleto = !string.IsNullOrWhiteSpace(perfil.Carrera) &&
-                           perfil.Habilidades != null && perfil.Habilidades.Any() &&
-                           !string.IsNullOrWhiteSpace(perfil.Descripcion);
+        var faltantes = perfil.ObtenerCamposFaltantes();
 
         return new PerfilEstudianteDto
         {
@@ -41,8 +40,9 @@ public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEs
             Carrera = perfil.Carrera ?? string.Empty,
             Habilidades = perfil.Habilidades ?? new List<string>(),
             Descripcion = perfil.Descripcion ?? string.Empty,
-            EsPerfilCompleto = esCompleto,
-            CamposObligatorios = new List<string> { "Carrera", "Habilidades", "Descripcion" }
+            EsPerfilCompleto = faltantes.Count == 0,
+            CamposObligatorios = obligatorios,
+            CamposFaltantes = faltantes
         };
     }
 }

@@ -2,4 +2,4 @@
 
 namespace Usuarios.Application.Queries.ObtenerPerfil;
 
-public record ObtenerPerfilQuery(Guid UsuarioId) : IRequest<PerfilEstudianteDto?>;
+public record ObtenerPerfilQuery(Guid UsuarioId) : IRequest<PerfilEstudianteDto>;

@@ -22,13 +22,10 @@ public class PerfilesController : ControllerBase
     [HttpGet("mi-perfil")]
     public async Task<IActionResult> ObtenerMiPerfil()
     {
-        var usuarioIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(usuarioIdStr, out var usuarioId))
+        if (!TryObtenerUsuarioId(out var usuarioId))
             return Unauthorized();
 
-        var query = new ObtenerPerfilQuery(usuarioId);
-        var perfil = await _mediator.Send(query);
-
+        var perfil = await _mediator.Send(new ObtenerPerfilQuery(usuarioId));
         return Ok(perfil);
     }
 
@@ -36,13 +33,17 @@ public class PerfilesController : ControllerBase
     [HttpPut("mi-perfil")]
     public async Task<IActionResult> GuardarPerfil(CrearOActualizarPerfilCommand command)
     {
-        var usuarioIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!Guid.TryParse(usuarioIdStr, out var usuarioId))
+        if (!TryObtenerUsuarioId(out var usuarioId))
             return Unauthorized();
 
-        var commandConUsuario = command with { UsuarioId = usuarioId };
-
-        var resultId = await _mediator.Send(commandConUsuario);
+        var resultId = await _mediator.Send(command with { UsuarioId = usuarioId });
         return Ok(new { PerfilId = resultId });
+    }
+
+    private bool TryObtenerUsuarioId(out Guid usuarioId)
+    {
+        var valor = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                    ?? User.FindFirst("sub")?.Value;
+        return Guid.TryParse(valor, out usuarioId);
     }
 }

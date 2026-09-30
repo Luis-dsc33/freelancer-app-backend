@@ -1,8 +1,8 @@
-﻿using Usuarios.Application.Interfaces;
+using Usuarios.Application.Interfaces;
 
 namespace Usuarios.Infrastructure.Security;
 
-public class BCryptPasswordHasher : IPasswordHasher
+public class PasswordHasher : IPasswordHasher
 {
     public string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password);
 

@@ -7,11 +7,11 @@ using Usuarios.Application.Interfaces;
 
 namespace Usuarios.Infrastructure.Security;
 
-public class SmtpEmailSender : IEmailSender
+public class EmailSender : IEmailSender
 {
     private readonly IConfiguration _configuration;
 
-    public SmtpEmailSender(IConfiguration configuration) => _configuration = configuration;
+    public EmailSender(IConfiguration configuration) => _configuration = configuration;
 
     public async Task EnviarEnlaceRestablecimientoAsync(
         string destinatario,

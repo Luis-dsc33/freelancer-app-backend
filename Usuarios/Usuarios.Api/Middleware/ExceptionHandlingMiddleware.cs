@@ -40,6 +40,12 @@ public class ExceptionHandlingMiddleware
                 error = "No se pudo procesar la solicitud en este momento. Inténtalo más tarde."
             }));
         }
+        catch (RecursoNoEncontradoException ex)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
+        }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Regla de negocio rechazada");

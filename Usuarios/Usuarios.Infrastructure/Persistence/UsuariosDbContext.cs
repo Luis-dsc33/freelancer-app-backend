@@ -37,7 +37,10 @@ public class UsuariosDbContext : DbContext
                 .HasForeignKey(r => r.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
+    modelBuilder.Entity<PerfilEstudiante>()
+    .HasIndex(p => p.UsuarioId)
+    .IsUnique();
+    
         base.OnModelCreating(modelBuilder);   // ← buena práctica agregarla, aunque en este caso no hace nada extra
     }
 }

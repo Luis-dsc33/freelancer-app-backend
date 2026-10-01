@@ -32,6 +32,14 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContrasenaRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
+//builder.Services.AddSingleton<IPasswordStrengthChecker, ZxcvbnPasswordStrengthChecker>();
+
+// REGISTRAR HttpClient typed client PARA HIBP
+builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChecker>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(2500); // TIMEOUT PARA NO BLOQUEAR PETICIONES
+    client.DefaultRequestHeaders.Add("User-Agent", "UsuariosApp-UTSJR");
+});
 
 // --- Autenticación JWT ---
 var jwtKey = builder.Configuration["Jwt:Key"]!;

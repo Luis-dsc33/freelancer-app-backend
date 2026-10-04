@@ -50,6 +50,11 @@ public class UsuariosDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // HU-04 escenario 02: un unico perfil por cuenta de usuario
+        modelBuilder.Entity<PerfilEstudiante>()
+            .HasIndex(p => p.UsuarioId)
+            .IsUnique();
+
         base.OnModelCreating(modelBuilder);   // ← buena práctica agregarla, aunque en este caso no hace nada extra
     }
 }

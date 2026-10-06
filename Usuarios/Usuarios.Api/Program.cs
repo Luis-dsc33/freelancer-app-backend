@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,12 +26,14 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddValidatorsFromAssembly(typeof(Usuarios.Application.Commands.RegistrarUsuario.RegistrarUsuarioCommand).Assembly);
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<ITrabajoPortafolioRepository, TrabajoPortafolioRepository>();
 builder.Services.AddScoped<IRolRepository, RolRepository>();
-builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContrasenaRepository>();
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
+
 //builder.Services.AddSingleton<IPasswordStrengthChecker, ZxcvbnPasswordStrengthChecker>();
 
 // REGISTRAR HttpClient typed client PARA HIBP
@@ -41,7 +43,9 @@ builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChe
     client.DefaultRequestHeaders.Add("User-Agent", "UsuariosApp-UTSJR");
 });
 
-// --- Autenticación JWT ---
+builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
+
+// --- Autenticacion JWT ---
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -58,7 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
-// --- fin de autenticación JWT ---
+// --- fin de autenticacion JWT ---
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -93,7 +97,7 @@ app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 
-// Aplicar migraciones automáticamente
+// Aplicar migraciones automÃ¡ticamente
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();

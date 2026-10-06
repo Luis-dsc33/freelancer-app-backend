@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=db_nombre;Username=postgres;Password=PASSWORD_LOCAL"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=freelancer_db;Username=freelancer_admin;Password=PASSWORD_LOCAL"
   },
   "Jwt": {
     "Key": "nuestra-clave-secreta-de-al-menos-32-caracteres",
@@ -10,7 +10,7 @@
   },
   "PasswordReset": {
     "ExpiresInMinutes": 30,
-    "ResetPageUrl": "http://localhost:8100/restablecer-password"
+    "ResetPageUrl": "http://localhost:8100/auth/restablecer-password"
   },
   "Smtp": {
     "Host": "localhost",

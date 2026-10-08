@@ -15,7 +15,12 @@ public class CrearOActualizarPerfilCommandValidator : AbstractValidator<CrearOAc
         RuleFor(x => x.Habilidades)
             .NotEmpty().WithMessage("Debe especificar al menos una habilidad.");
 
+            .Must(h => h is not null && h.Any(s => !string.IsNullOrWhiteSpace(s)))
+            .WithMessage("Debe especificar al menos una habilidad.");
+
+
         RuleFor(x => x.Descripcion)
             .NotEmpty().WithMessage("La descripcion es obligatoria.");
     }
+}
 }

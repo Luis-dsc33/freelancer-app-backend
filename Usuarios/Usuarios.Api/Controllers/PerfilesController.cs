@@ -39,6 +39,19 @@ public class PerfilesController : ControllerBase
         var resultId = await _mediator.Send(command with { UsuarioId = usuarioId });
         return Ok(new { PerfilId = resultId });
     }
+=======
+[HttpPut("mi-perfil")]
+public async Task<IActionResult> GuardarPerfil(GuardarPerfilRequest request)
+{
+    if (!TryObtenerUsuarioId(out var usuarioId))
+        return Unauthorized();
+
+    var command = new CrearOActualizarPerfilCommand(
+        usuarioId, request.Carrera, request.Habilidades, request.Descripcion);
+
+    var resultId = await _mediator.Send(command);
+    return Ok(new { PerfilId = resultId });
+}
 
     private bool TryObtenerUsuarioId(out Guid usuarioId)
     {
@@ -47,3 +60,6 @@ public class PerfilesController : ControllerBase
         return Guid.TryParse(valor, out usuarioId);
     }
 }
+}
+public record GuardarPerfilRequest(string Carrera, List<string> Habilidades, string Descripcion);
+

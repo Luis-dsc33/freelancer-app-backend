@@ -28,11 +28,12 @@ builder.Services.AddValidatorsFromAssembly(typeof(Usuarios.Application.Commands.
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITrabajoPortafolioRepository, TrabajoPortafolioRepository>();
 builder.Services.AddScoped<IRolRepository, RolRepository>();
-builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContrasenaRepository>();
-builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
+builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
 
 //builder.Services.AddSingleton<IPasswordStrengthChecker, ZxcvbnPasswordStrengthChecker>();
 
@@ -63,6 +64,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 // --- fin de autenticacion JWT ---
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

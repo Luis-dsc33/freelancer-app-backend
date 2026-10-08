@@ -2,7 +2,7 @@ using Usuarios.Application.Interfaces;
 
 namespace Usuarios.Infrastructure.Security;
 
-public class PasswordHasher : IPasswordHasher
+public class BCryptPasswordHasher : IPasswordHasher
 {
     public string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password);
 

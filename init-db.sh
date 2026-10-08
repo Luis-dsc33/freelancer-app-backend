@@ -3,14 +3,14 @@ set -e
 
 # Script de inicialización de PostgreSQL.
 # Se ejecuta automáticamente SOLO la primera vez que se crea el contenedor.
-# Crea las bases de datos individuales para cada microservicio.
+# PostgreSQL crea POSTGRES_DB. Los servicios comparten esa base y usan schemas.
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE freelancer_usuarios;
-    CREATE DATABASE freelancer_admin;
-    CREATE DATABASE freelancer_chat;
-    CREATE DATABASE freelancer_marketplace;
-    CREATE DATABASE freelancer_resenas;
+    CREATE SCHEMA IF NOT EXISTS usuarios;
+    CREATE SCHEMA IF NOT EXISTS admin;
+    CREATE SCHEMA IF NOT EXISTS chat;
+    CREATE SCHEMA IF NOT EXISTS marketplace;
+    CREATE SCHEMA IF NOT EXISTS resenas;
 EOSQL
 
-echo "✅ Todas las bases de datos creadas correctamente."
+echo "✅ Schemas creados en la base compartida."

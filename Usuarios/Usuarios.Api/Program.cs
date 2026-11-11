@@ -65,6 +65,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:8100",           // ESTE ES DESARROLLO LOCAL
+                "http://localhost:4200",           // FRONTEND LOCAL
                 "https://falta-dominio-frontend.com"  // AJUSTAMOS ESTE PA CUANDO YA ESTE ARRIBA 
               )
               .AllowAnyHeader()

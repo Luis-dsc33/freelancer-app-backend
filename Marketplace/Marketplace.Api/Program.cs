@@ -7,6 +7,8 @@ using Marketplace.Application.Behaviors;
 using Marketplace.Api.Middleware;
 using Marketplace.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Marketplace.Application.Interfaces;
+using Marketplace.Application.Queries.ListarOportunidades;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,23 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
 if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
     throw new InvalidOperationException("Jwt:Key debe tener al menos 32 bytes.");
 
-builder.Services.AddDbContext<MarketplaceDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<MarketplaceDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(ListarOportunidadesQuery).Assembly);
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+builder.Services.AddValidatorsFromAssembly(typeof(ListarOportunidadesQuery).Assembly);
+
+builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
+
+// --- Autenticación JWT (misma clave/issuer/audience que Usuarios.Api) ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -34,18 +52,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
         };
     });
-builder.Services.AddControllers();
-var applicationAssembly = typeof(ValidationBehavior<,>).Assembly;
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(applicationAssembly);
-    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
-});
-builder.Services.AddValidatorsFromAssembly(applicationAssembly);
 builder.Services.AddAuthorization();
+// --- fin de autenticación JWT ---
+
+// JSON camelCase (contrato del frontend)
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -58,6 +74,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:8100",             // ESTE ES DESARROLLO LOCAL
+                "http://localhost:4200",             // FRONTEND LOCAL
                 "https://falta-dominio-frontend.com"    // AJUSTAMOS ESTE PA CUANDO YA ESTE ARRIBA 
               )
               .AllowAnyHeader()
@@ -81,5 +98,24 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Aplicar migraciones automáticamente
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<MarketplaceDbContext>();
+        if (db.Database.IsRelational())
+        {
+            db.Database.Migrate();
+            logger.LogInformation("Migraciones aplicadas correctamente.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al aplicar migraciones de Entity Framework.");
+    }
+}
 
 app.Run();

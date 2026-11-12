@@ -46,6 +46,16 @@ public class ExceptionHandlingMiddleware
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "No se pudo identificar al usuario autenticado");
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new
+            {
+                error = "No se pudo identificar al usuario autenticado."
+            }));
+        }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Regla de negocio rechazada");

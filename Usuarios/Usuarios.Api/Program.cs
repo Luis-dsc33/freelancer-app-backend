@@ -7,12 +7,30 @@ using Microsoft.IdentityModel.Tokens;
 using Usuarios.Api.Middleware;
 using Usuarios.Application.Behaviors;
 using Usuarios.Application.Interfaces;
+using Usuarios.Api.Services;
 using Usuarios.Infrastructure.Persistence;
 using Usuarios.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Falta configurar ConnectionStrings:DefaultConnection.");
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Falta configurar Jwt:Key.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException("Falta configurar Jwt:Issuer.");
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException("Falta configurar Jwt:Audience.");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection no puede estar vacía.");
+}
+
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException("Jwt:Key debe tener al menos 32 bytes.");
+}
 
 builder.Services.AddDbContext<UsuariosDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -28,26 +46,22 @@ builder.Services.AddValidatorsFromAssembly(typeof(Usuarios.Application.Commands.
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ITrabajoPortafolioRepository, TrabajoPortafolioRepository>();
 builder.Services.AddScoped<IRolRepository, RolRepository>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContrasenaRepository>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
 builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-//builder.Services.AddSingleton<IPasswordStrengthChecker, ZxcvbnPasswordStrengthChecker>();
-
-// REGISTRAR HttpClient typed client PARA HIBP
 builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChecker>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(2500); // TIMEOUT PARA NO BLOQUEAR PETICIONES
+    client.Timeout = TimeSpan.FromSeconds(2.5);
     client.DefaultRequestHeaders.Add("User-Agent", "UsuariosApp-UTSJR");
 });
 
-builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
-
 // --- Autenticacion JWT ---
-var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -57,8 +71,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
@@ -99,20 +113,10 @@ app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 
-// Aplicar migraciones automÃ¡ticamente
-using (var scope = app.Services.CreateScope())
+await using (var scope = app.Services.CreateAsyncScope())
 {
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    try
-    {
-        var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
-        db.Database.Migrate();
-        logger.LogInformation("Migraciones aplicadas correctamente.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error al aplicar migraciones de Entity Framework.");
-    }
+    var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
+    await db.Database.MigrateAsync();
 }
 
 app.Run();

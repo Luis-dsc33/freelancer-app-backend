@@ -199,8 +199,6 @@ namespace Usuarios.Infrastructure.Migrations
                     b.ToTable("Usuarios", "usuarios");
                 });
 
-<<<<<<< HEAD
-=======
             modelBuilder.Entity("Usuarios.Domain.Entities.PerfilEstudiante", b =>
                 {
                     b.HasOne("Usuarios.Domain.Entities.Usuario", "Usuario")
@@ -208,11 +206,9 @@ namespace Usuarios.Infrastructure.Migrations
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("Usuario");
                 });
 
->>>>>>> origin/Sprint-3
             modelBuilder.Entity("Usuarios.Domain.Entities.RecuperacionContrasena", b =>
                 {
                     b.HasOne("Usuarios.Domain.Entities.Usuario", "Usuario")

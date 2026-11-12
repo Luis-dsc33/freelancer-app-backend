@@ -6,7 +6,6 @@ public class ModificarTrabajoPortafolioCommandValidator : AbstractValidator<Modi
 {
     public ModificarTrabajoPortafolioCommandValidator()
     {
-        RuleFor(c => c.UsuarioId).NotEmpty();
         RuleFor(c => c.Id).NotEmpty();
         RuleFor(c => c.Titulo).NotEmpty().WithMessage("El título es obligatorio.")
             .MaximumLength(150).WithMessage("El título admite hasta 150 caracteres.");

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +15,7 @@ public class PortafoliosController(IMediator mediator) : ControllerBase
 {
     [HttpGet("mi-portafolio")]
     public async Task<IActionResult> ObtenerMiPortafolio(CancellationToken cancellationToken)
-    {
-        if (!TryObtenerUsuarioId(out var usuarioId)) return Unauthorized();
-        return Ok(await mediator.Send(new ObtenerPortafolioQuery(usuarioId), cancellationToken));
-    }
+        => Ok(await mediator.Send(new ObtenerMiPortafolioQuery(), cancellationToken));
 
     [AllowAnonymous]
     [HttpGet("estudiantes/{usuarioId:guid}")]
@@ -27,30 +23,28 @@ public class PortafoliosController(IMediator mediator) : ControllerBase
         Ok(await mediator.Send(new ObtenerPortafolioQuery(usuarioId), cancellationToken));
 
     [HttpPost("trabajos")]
-    public async Task<IActionResult> Agregar(AgregarTrabajoPortafolioCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> Agregar(
+        AgregarTrabajoPortafolioCommand command,
+        CancellationToken cancellationToken)
     {
-        if (!TryObtenerUsuarioId(out var usuarioId)) return Unauthorized();
-        var id = await mediator.Send(command with { UsuarioId = usuarioId }, cancellationToken);
-        return CreatedAtAction(nameof(ObtenerMiPortafolio), new { id });
+        var id = await mediator.Send(command, cancellationToken);
+        return StatusCode(StatusCodes.Status201Created, new { TrabajoId = id });
     }
 
     [HttpPut("trabajos/{id:guid}")]
-    public async Task<IActionResult> Modificar(Guid id, ModificarTrabajoPortafolioCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> Modificar(
+        Guid id,
+        ModificarTrabajoPortafolioCommand command,
+        CancellationToken cancellationToken)
     {
-        if (!TryObtenerUsuarioId(out var usuarioId)) return Unauthorized();
-        await mediator.Send(command with { Id = id, UsuarioId = usuarioId }, cancellationToken);
+        await mediator.Send(command with { Id = id }, cancellationToken);
         return NoContent();
     }
 
     [HttpDelete("trabajos/{id:guid}")]
     public async Task<IActionResult> Eliminar(Guid id, CancellationToken cancellationToken)
     {
-        if (!TryObtenerUsuarioId(out var usuarioId)) return Unauthorized();
-        await mediator.Send(new EliminarTrabajoPortafolioCommand(id, usuarioId), cancellationToken);
+        await mediator.Send(new EliminarTrabajoPortafolioCommand(id), cancellationToken);
         return NoContent();
     }
-
-    private bool TryObtenerUsuarioId(out Guid usuarioId) =>
-        Guid.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value, out usuarioId)
-        && usuarioId != Guid.Empty;
 }

@@ -34,6 +34,7 @@ builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContra
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
 builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
+builder.Services.AddScoped<AdminInicialSeeder>();
 
 // --- AutenticaciÃ³n JWT ---
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -96,6 +97,9 @@ using (var scope = app.Services.CreateScope())
         var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
         db.Database.Migrate();
         logger.LogInformation("Migraciones aplicadas correctamente.");
+
+        // Cuenta Administrador inicial (solo si AdminInicial:* está configurado y no existe)
+        await scope.ServiceProvider.GetRequiredService<AdminInicialSeeder>().SembrarAsync();
     }
     catch (Exception ex)
     {

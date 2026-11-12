@@ -206,7 +206,6 @@ namespace Usuarios.Infrastructure.Migrations
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
                     b.Navigation("Usuario");
                 });
 

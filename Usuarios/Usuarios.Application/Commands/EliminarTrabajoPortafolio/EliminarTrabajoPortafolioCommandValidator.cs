@@ -7,6 +7,5 @@ public class EliminarTrabajoPortafolioCommandValidator : AbstractValidator<Elimi
     public EliminarTrabajoPortafolioCommandValidator()
     {
         RuleFor(c => c.Id).NotEmpty();
-        RuleFor(c => c.UsuarioId).NotEmpty();
     }
 }

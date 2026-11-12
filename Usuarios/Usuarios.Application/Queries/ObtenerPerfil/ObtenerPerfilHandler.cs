@@ -7,15 +7,20 @@ namespace Usuarios.Application.Queries.ObtenerPerfil;
 public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEstudianteDto>
 {
     private readonly IPerfilEstudianteRepository _repository;
+    private readonly ICurrentUserService _currentUser;
 
-    public ObtenerPerfilHandler(IPerfilEstudianteRepository repository)
+    public ObtenerPerfilHandler(
+        IPerfilEstudianteRepository repository,
+        ICurrentUserService currentUser)
     {
         _repository = repository;
+        _currentUser = currentUser;
     }
 
     public async Task<PerfilEstudianteDto> Handle(ObtenerPerfilQuery request, CancellationToken cancellationToken)
     {
-        var perfil = await _repository.ObtenerPorUsuarioIdAsync(request.UsuarioId);
+        var usuarioId = _currentUser.UsuarioId;
+        var perfil = await _repository.ObtenerPorUsuarioIdAsync(usuarioId);
         var obligatorios = PerfilEstudiante.CamposObligatorios.ToList();
 
         // Primer ingreso: todavía no existe perfil, todos los campos están pendientes
@@ -24,7 +29,7 @@ public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEs
             return new PerfilEstudianteDto
             {
                 Id = null,
-                UsuarioId = request.UsuarioId,
+                UsuarioId = usuarioId,
                 EsPerfilCompleto = false,
                 CamposObligatorios = obligatorios,
                 CamposFaltantes = obligatorios.ToList()

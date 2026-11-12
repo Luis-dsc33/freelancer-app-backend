@@ -6,15 +6,15 @@ public class CrearOActualizarPerfilCommandValidator : AbstractValidator<CrearOAc
 {
     public CrearOActualizarPerfilCommandValidator()
     {
-        RuleFor(x => x.UsuarioId)
-            .NotEmpty().WithMessage("El usuario es requerido.");
-
         RuleFor(x => x.Carrera)
             .NotEmpty().WithMessage("La carrera es obligatoria.");
 
         RuleFor(x => x.Habilidades)
-            .Must(h => h is not null && h.Any(s => !string.IsNullOrWhiteSpace(s)))
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty().WithMessage("Debe especificar al menos una habilidad.")
+            .Must(h => h.Any(s => !string.IsNullOrWhiteSpace(s)))
             .WithMessage("Debe especificar al menos una habilidad.");
+
 
         RuleFor(x => x.Descripcion)
             .NotEmpty().WithMessage("La descripcion es obligatoria.");

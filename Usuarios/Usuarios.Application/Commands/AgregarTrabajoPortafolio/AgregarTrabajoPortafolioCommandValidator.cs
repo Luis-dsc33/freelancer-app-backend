@@ -6,7 +6,6 @@ public class AgregarTrabajoPortafolioCommandValidator : AbstractValidator<Agrega
 {
     public AgregarTrabajoPortafolioCommandValidator()
     {
-        RuleFor(c => c.UsuarioId).NotEmpty();
         RuleFor(c => c.Titulo).NotEmpty().WithMessage("El título es obligatorio.")
             .MaximumLength(150).WithMessage("El título admite hasta 150 caracteres.");
         RuleFor(c => c.Descripcion).NotEmpty().WithMessage("La descripción es obligatoria.")

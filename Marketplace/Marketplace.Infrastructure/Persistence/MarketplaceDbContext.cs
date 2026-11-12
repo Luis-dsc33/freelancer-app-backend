@@ -17,7 +17,9 @@ public class MarketplaceDbContext : DbContext
         {
             entity.Property(p => p.Titulo).HasMaxLength(150).IsRequired();
             entity.Property(p => p.Descripcion).HasMaxLength(4000).IsRequired();
+            entity.Property(p => p.Disciplina).HasMaxLength(100).IsRequired();
             entity.Property(p => p.Presupuesto).HasPrecision(12, 2);
+            entity.Property(p => p.FechaLimite).IsRequired();
             entity.Property(p => p.NombreCliente).HasMaxLength(150).IsRequired();
             entity.Property(p => p.Estado).HasMaxLength(30).IsRequired();
             entity.Property(p => p.HabilidadesRequeridas).IsRequired();
@@ -32,7 +34,10 @@ public class MarketplaceDbContext : DbContext
                     Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
                     Titulo = "App móvil universitaria",
                     Descripcion = "MVP para estudiantes",
+                    Disciplina = "Desarrollo de software",
                     Presupuesto = 10000m,
+                    FechaLimite = new DateOnly(2026, 11, 30),
+                    ClienteId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                     EsUrgente = false,
                     HabilidadesRequeridas = new List<string> { "Angular", "Ionic" },
                     NombreCliente = "CodeBridge",
@@ -44,7 +49,10 @@ public class MarketplaceDbContext : DbContext
                     Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
                     Titulo = "Landing de recaudación",
                     Descripcion = "Sitio marketing con formularios",
+                    Disciplina = "Marketing digital",
                     Presupuesto = 4500m,
+                    FechaLimite = new DateOnly(2026, 11, 30),
+                    ClienteId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                     EsUrgente = true,
                     HabilidadesRequeridas = new List<string> { "HTML", "CSS", "SEO" },
                     NombreCliente = "Club Alumni",

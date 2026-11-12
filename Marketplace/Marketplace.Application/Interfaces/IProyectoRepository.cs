@@ -9,4 +9,6 @@ public interface IProyectoRepository
     /// urgencia descendente y fecha de creación descendente.
     /// </summary>
     Task<List<Proyecto>> ObtenerAbiertosAsync(CancellationToken cancellationToken);
+
+    Task AgregarAsync(Proyecto proyecto, CancellationToken cancellationToken);
 }

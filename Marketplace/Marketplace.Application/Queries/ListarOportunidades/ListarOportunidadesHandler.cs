@@ -16,7 +16,9 @@ public class ListarOportunidadesHandler(IProyectoRepository proyectos)
                 p.Id,
                 p.Titulo,
                 p.Descripcion,
+                p.Disciplina,
                 p.Presupuesto,
+                p.FechaLimite,
                 p.EsUrgente,
                 (IReadOnlyList<string>)(p.HabilidadesRequeridas ?? new List<string>()).ToList(), // nunca null
                 p.NombreCliente,

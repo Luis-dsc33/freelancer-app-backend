@@ -12,4 +12,10 @@ public class ProyectoRepository(MarketplaceDbContext context) : IProyectoReposit
             .OrderByDescending(p => p.EsUrgente)
             .ThenByDescending(p => p.CreadoEn)
             .ToListAsync(cancellationToken);
+
+    public async Task AgregarAsync(Proyecto proyecto, CancellationToken cancellationToken)
+    {
+        await context.Proyectos.AddAsync(proyecto, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }

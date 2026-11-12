@@ -30,6 +30,9 @@ namespace Marketplace.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("ClienteId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("timestamp with time zone");
 
@@ -38,6 +41,11 @@ namespace Marketplace.Infrastructure.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");
 
+                    b.Property<string>("Disciplina")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<bool>("EsUrgente")
                         .HasColumnType("boolean");
 
@@ -45,6 +53,9 @@ namespace Marketplace.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<DateOnly>("FechaLimite")
+                        .HasColumnType("date");
 
                     b.PrimitiveCollection<List<string>>("HabilidadesRequeridas")
                         .IsRequired()
@@ -74,10 +85,13 @@ namespace Marketplace.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
+                            ClienteId = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                             CreadoEn = new DateTime(2026, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descripcion = "MVP para estudiantes",
+                            Disciplina = "Desarrollo de software",
                             EsUrgente = false,
                             Estado = "Abierto",
+                            FechaLimite = new DateOnly(2026, 11, 30),
                             HabilidadesRequeridas = new List<string> { "Angular", "Ionic" },
                             NombreCliente = "CodeBridge",
                             Presupuesto = 10000m,
@@ -86,10 +100,13 @@ namespace Marketplace.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("22222222-2222-2222-2222-222222222222"),
+                            ClienteId = new Guid("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
                             CreadoEn = new DateTime(2026, 11, 5, 15, 30, 0, 0, DateTimeKind.Utc),
                             Descripcion = "Sitio marketing con formularios",
+                            Disciplina = "Marketing digital",
                             EsUrgente = true,
                             Estado = "Abierto",
+                            FechaLimite = new DateOnly(2026, 11, 30),
                             HabilidadesRequeridas = new List<string> { "HTML", "CSS", "SEO" },
                             NombreCliente = "Club Alumni",
                             Presupuesto = 4500m,

@@ -19,5 +19,10 @@
     "Password": "",
     "FromEmail": "no-reply@codebridge.local",
     "FromName": "CodeBridge"
+  },
+  "AdminInicial": {
+    "Nombre": "Administrador CodeBridge",
+    "Email": "admin@codebridge.local",
+    "Password": "CAMBIAR_POR_PASSWORD_LOCAL"
   }
 }

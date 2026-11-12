@@ -54,6 +54,7 @@ builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
 builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<AdminInicialSeeder>();
 
 builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChecker>(client =>
 {
@@ -116,7 +117,19 @@ app.MapControllers();
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
-    await db.Database.MigrateAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        await db.Database.MigrateAsync();
+        logger.LogInformation("Migraciones aplicadas correctamente.");
+
+        // Cuenta Administrador inicial (solo si AdminInicial:* está configurado y no existe)
+        await scope.ServiceProvider.GetRequiredService<AdminInicialSeeder>().SembrarAsync();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al aplicar migraciones de Entity Framework.");
+    }
 }
 
 app.Run();

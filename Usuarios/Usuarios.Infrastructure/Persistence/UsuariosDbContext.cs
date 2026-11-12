@@ -10,6 +10,9 @@ public class UsuariosDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<RecuperacionContrasena> RecuperacionesContrasena => Set<RecuperacionContrasena>();
+    public DbSet<PerfilEstudiante> PerfilesEstudiante => Set<PerfilEstudiante>();
+
+    public DbSet<TrabajoPortafolio> TrabajosPortafolio => Set<TrabajoPortafolio>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +39,21 @@ public class UsuariosDbContext : DbContext
                 .HasForeignKey(r => r.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<TrabajoPortafolio>(entity =>
+        {
+            entity.HasIndex(t => t.UsuarioId);
+            entity.Property(t => t.Titulo).HasMaxLength(150).IsRequired();
+            entity.Property(t => t.Descripcion).HasMaxLength(2000).IsRequired();
+            entity.Property(t => t.Enlace).HasMaxLength(2048);
+            entity.HasOne(t => t.Usuario).WithMany().HasForeignKey(t => t.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // HU-04 escenario 02: un unico perfil por cuenta de usuario
+        modelBuilder.Entity<PerfilEstudiante>()
+            .HasIndex(p => p.UsuarioId)
+            .IsUnique();
 
         base.OnModelCreating(modelBuilder);   // ← buena práctica agregarla, aunque en este caso no hace nada extra
     }

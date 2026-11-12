@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -7,12 +7,30 @@ using Microsoft.IdentityModel.Tokens;
 using Usuarios.Api.Middleware;
 using Usuarios.Application.Behaviors;
 using Usuarios.Application.Interfaces;
+using Usuarios.Api.Services;
 using Usuarios.Infrastructure.Persistence;
 using Usuarios.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Falta configurar ConnectionStrings:DefaultConnection.");
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException("Falta configurar Jwt:Key.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException("Falta configurar Jwt:Issuer.");
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException("Falta configurar Jwt:Audience.");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:DefaultConnection no puede estar vacía.");
+}
+
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException("Jwt:Key debe tener al menos 32 bytes.");
+}
 
 builder.Services.AddDbContext<UsuariosDbContext>(options =>
     options.UseNpgsql(connectionString));
@@ -26,15 +44,25 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddValidatorsFromAssembly(typeof(Usuarios.Application.Commands.RegistrarUsuario.RegistrarUsuarioCommand).Assembly);
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<ITrabajoPortafolioRepository, TrabajoPortafolioRepository>();
 builder.Services.AddScoped<IRolRepository, RolRepository>();
 builder.Services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContrasenaRepository>();
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
+builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<AdminInicialSeeder>();
 
-// --- Autenticación JWT ---
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChecker>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(2.5);
+    client.DefaultRequestHeaders.Add("User-Agent", "UsuariosApp-UTSJR");
+});
+
+// --- Autenticacion JWT ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -44,13 +72,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 builder.Services.AddAuthorization();
-// --- fin de autenticación JWT ---
+// --- fin de autenticacion JWT ---
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -63,6 +92,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:8100",           // ESTE ES DESARROLLO LOCAL
+                "http://localhost:4200",           // FRONTEND LOCAL
                 "https://falta-dominio-frontend.com"  // AJUSTAMOS ESTE PA CUANDO YA ESTE ARRIBA 
               )
               .AllowAnyHeader()
@@ -85,15 +115,17 @@ app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 
-// Aplicar migraciones automáticamente
-using (var scope = app.Services.CreateScope())
+await using (var scope = app.Services.CreateAsyncScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try
     {
-        var db = scope.ServiceProvider.GetRequiredService<UsuariosDbContext>();
-        db.Database.Migrate();
+        await db.Database.MigrateAsync();
         logger.LogInformation("Migraciones aplicadas correctamente.");
+
+        // Cuenta Administrador inicial (solo si AdminInicial:* está configurado y no existe)
+        await scope.ServiceProvider.GetRequiredService<AdminInicialSeeder>().SembrarAsync();
     }
     catch (Exception ex)
     {

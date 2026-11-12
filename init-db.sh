@@ -3,7 +3,14 @@ set -e
 
 # Script de inicialización de PostgreSQL.
 # Se ejecuta automáticamente SOLO la primera vez que se crea el contenedor.
-# Ya no se crean bases separadas: todos los microservicios comparten
-# la misma BD ($POSTGRES_DB) y se separan por schemas.
+# PostgreSQL crea POSTGRES_DB. Los servicios comparten esa base y usan schemas.
 
-echo "✅ Base de datos '$POSTGRES_DB' lista. Los schemas se crean vía EF Core migrations."
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    CREATE SCHEMA IF NOT EXISTS usuarios;
+    CREATE SCHEMA IF NOT EXISTS admin;
+    CREATE SCHEMA IF NOT EXISTS chat;
+    CREATE SCHEMA IF NOT EXISTS marketplace;
+    CREATE SCHEMA IF NOT EXISTS resenas;
+EOSQL
+
+echo "✅ Schemas creados en la base compartida."

@@ -55,6 +55,7 @@ builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteReposito
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<AdminInicialSeeder>();
+builder.Services.AddScoped<IUsuarioAdminRepository, UsuarioAdminRepository>(); // ADMIN Marcos: HU-25/21/26/28
 
 builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChecker>(client =>
 {

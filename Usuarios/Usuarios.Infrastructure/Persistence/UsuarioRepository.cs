@@ -9,6 +9,10 @@ public class UsuarioRepository : IUsuarioRepository
     private readonly UsuariosDbContext _context;
     public UsuarioRepository(UsuariosDbContext context) => _context = context;
 
+    public Task<Usuario?> ObtenerPorIdAsync(Guid id, CancellationToken cancellationToken) =>
+        _context.Usuarios.AsNoTracking().Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
     public async Task<bool> ExisteEmailAsync(string email) =>
         await _context.Usuarios.AnyAsync(u => u.Email == email);
 
@@ -21,8 +25,11 @@ public class UsuarioRepository : IUsuarioRepository
     public async Task<List<Usuario>> ObtenerTodosAsync() =>
         await _context.Usuarios.ToListAsync();
 
-    public async Task<Usuario?> ObtenerPorEmailAsync(string email) =>
-    await _context.Usuarios
-        .Include(u => u.Rol) 
-        .FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<Usuario?> ObtenerPorEmailAsync(string email)
+    {
+        var emailNormalizado = email.Trim().ToLowerInvariant();
+        return await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == emailNormalizado);
+    }
 }

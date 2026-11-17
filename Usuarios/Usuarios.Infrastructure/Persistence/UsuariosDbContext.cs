@@ -10,6 +10,10 @@ public class UsuariosDbContext : DbContext
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<RecuperacionContrasena> RecuperacionesContrasena => Set<RecuperacionContrasena>();
+    public DbSet<PerfilEstudiante> PerfilesEstudiante => Set<PerfilEstudiante>();
+    public DbSet<PerfilCliente> PerfilesCliente => Set<PerfilCliente>();
+
+    public DbSet<TrabajoPortafolio> TrabajosPortafolio => Set<TrabajoPortafolio>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +38,35 @@ public class UsuariosDbContext : DbContext
             entity.HasOne(r => r.Usuario)
                 .WithMany()
                 .HasForeignKey(r => r.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<TrabajoPortafolio>(entity =>
+        {
+            entity.HasIndex(t => t.UsuarioId);
+            entity.Property(t => t.Titulo).HasMaxLength(150).IsRequired();
+            entity.Property(t => t.Descripcion).HasMaxLength(2000).IsRequired();
+            entity.Property(t => t.Enlace).HasMaxLength(2048);
+            entity.HasOne(t => t.Usuario).WithMany().HasForeignKey(t => t.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // HU-04 escenario 02: un unico perfil por cuenta de usuario
+        modelBuilder.Entity<PerfilEstudiante>()
+            .HasIndex(p => p.UsuarioId)
+            .IsUnique();
+
+        modelBuilder.Entity<PerfilCliente>(entity =>
+        {
+            entity.HasIndex(p => p.UsuarioId).IsUnique();
+            entity.Property(p => p.NombreEmpresa).HasMaxLength(200).IsRequired();
+            entity.Property(p => p.Telefono).HasMaxLength(30).IsRequired();
+            entity.Property(p => p.Ubicacion).HasMaxLength(200).IsRequired();
+            entity.Property(p => p.Descripcion).HasMaxLength(2000).IsRequired();
+            entity.Property(p => p.DatosContacto).HasMaxLength(1000).IsRequired();
+            entity.HasOne(p => p.Usuario)
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

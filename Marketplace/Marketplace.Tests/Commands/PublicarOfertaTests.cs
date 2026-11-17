@@ -52,19 +52,23 @@ public class PublicarOfertaTests
     public async Task Handler_OfertaValida_GuardaYDevuelveLaOfertaAbierta()
     {
         var repository = new Mock<IProyectoRepository>();
+        var currentUser = new Mock<ICurrentUserService>();
+        var clienteId = Guid.NewGuid();
+        currentUser.SetupGet(item => item.IsAuthenticated).Returns(true);
+        currentUser.SetupGet(item => item.UserId).Returns(clienteId);
         Proyecto? guardado = null;
         repository
             .Setup(item => item.AgregarAsync(It.IsAny<Proyecto>(), It.IsAny<CancellationToken>()))
             .Callback<Proyecto, CancellationToken>((proyecto, _) => guardado = proyecto)
             .Returns(Task.CompletedTask);
-        var handler = new PublicarOfertaHandler(repository.Object);
+        var handler = new PublicarOfertaHandler(repository.Object, currentUser.Object);
         var command = ValidCommand();
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.NotNull(guardado);
         Assert.Equal(result.Id, guardado!.Id);
-        Assert.Equal(command.ClienteId, guardado.ClienteId);
+        Assert.Equal(clienteId, guardado.ClienteId);
         Assert.Equal(command.Disciplina, result.Disciplina);
         Assert.Equal(command.FechaLimite, result.FechaLimite);
         Assert.Equal(Proyecto.EstadoAbierto, result.Estado);
@@ -82,6 +86,6 @@ public class PublicarOfertaTests
             "Desarrollo de software",
             presupuesto,
             fechaLimite ?? DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1),
-            Guid.NewGuid(),
-            "Cliente de prueba");
+            false,
+            []);
 }

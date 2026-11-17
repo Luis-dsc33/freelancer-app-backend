@@ -24,6 +24,48 @@ namespace Usuarios.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Usuarios.Domain.Entities.PerfilCliente", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DatosContacto")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("NombreEmpresa")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Ubicacion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("UsuarioId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UsuarioId")
+                        .IsUnique();
+
+                    b.ToTable("PerfilesCliente", "usuarios");
+                });
+
             modelBuilder.Entity("Usuarios.Domain.Entities.PerfilEstudiante", b =>
                 {
                     b.Property<Guid>("Id")
@@ -199,6 +241,17 @@ namespace Usuarios.Infrastructure.Migrations
                     b.ToTable("Usuarios", "usuarios");
                 });
 
+            modelBuilder.Entity("Usuarios.Domain.Entities.PerfilCliente", b =>
+                {
+                    b.HasOne("Usuarios.Domain.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("Usuarios.Domain.Entities.PerfilEstudiante", b =>
                 {
                     b.HasOne("Usuarios.Domain.Entities.Usuario", "Usuario")
@@ -206,6 +259,7 @@ namespace Usuarios.Infrastructure.Migrations
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
                     b.Navigation("Usuario");
                 });
 

@@ -9,5 +9,5 @@ public sealed record PublicarOfertaCommand(
     string Disciplina,
     decimal Presupuesto,
     DateOnly FechaLimite,
-    Guid ClienteId,
-    string NombreCliente) : IRequest<OportunidadProyectoDto>;
+    bool EsUrgente,
+    List<string> HabilidadesRequeridas) : IRequest<OportunidadProyectoDto>;

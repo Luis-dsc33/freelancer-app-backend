@@ -9,6 +9,7 @@ using Marketplace.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Marketplace.Application.Interfaces;
 using Marketplace.Application.Queries.ListarOportunidades;
+using Marketplace.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,8 +38,13 @@ builder.Services.AddMediatR(cfg =>
 });
 
 builder.Services.AddValidatorsFromAssembly(typeof(ListarOportunidadesQuery).Assembly);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
+builder.Services.AddScoped<ISkillCatalogRepository, SkillCatalogRepository>();
+builder.Services.AddScoped<IPostulacionRepository, PostulacionRepository>();
+builder.Services.AddScoped<IContratoRepository, ContratoRepository>();
 
 // --- Autenticación JWT (misma clave/issuer/audience que Usuarios.Api) ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

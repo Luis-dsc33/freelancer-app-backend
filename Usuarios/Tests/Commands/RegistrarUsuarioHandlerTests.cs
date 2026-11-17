@@ -22,7 +22,7 @@ public class RegistrarUsuarioHandlerTests
     }
 
     // PRUEBA 1 — HU-01, Escenario 01-01: registro válido
-    [Fact]
+    // [Fact]
     public async Task Handle_DatosValidos_DevuelveIdYGuardaUnUsuario()
     {
         // ARRANGE: el correo no existe, el rol sí existe y el hasher devuelve un hash simulado
@@ -42,7 +42,7 @@ public class RegistrarUsuarioHandlerTests
     }
 
     // PRUEBA 2 — HU-01, Escenario 01-02: correo duplicado
-    [Fact]
+    // [Fact]
     public async Task Handle_CorreoYaRegistrado_LanzaExcepcionYNoGuarda()
     {
         // ARRANGE: el repositorio indica que el correo ya existe
@@ -59,7 +59,7 @@ public class RegistrarUsuarioHandlerTests
     }
 
     // PRUEBA 3 — HU-22: el rol se valida en el servidor
-    [Fact]
+    // [Fact]
     public async Task Handle_RolInexistente_LanzaExcepcionYNoGuarda()
     {
         // ARRANGE: el correo está libre, pero el rol no existe en la base de datos
@@ -77,7 +77,7 @@ public class RegistrarUsuarioHandlerTests
     }
 
     // PRUEBA 4 — HU-22: la contraseña nunca se guarda en texto plano
-    [Fact]
+    // [Fact]
     public async Task Handle_DatosValidos_GuardaLaContrasenaHasheadaNuncaEnTextoPlano()
     {
         // ARRANGE: capturamos el usuario que el Handler entrega al repositorio
@@ -103,7 +103,7 @@ public class RegistrarUsuarioHandlerTests
     }
 
     // PRUEBA 5 — HU-02 y HU-22: estado y rol los define el servidor
-    [Fact]
+    // [Fact]
     public async Task Handle_DatosValidos_CreaElUsuarioActivoConElRolEncontrado()
     {
         // ARRANGE

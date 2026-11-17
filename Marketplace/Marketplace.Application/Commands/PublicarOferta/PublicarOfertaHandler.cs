@@ -5,13 +5,18 @@ using MediatR;
 
 namespace Marketplace.Application.Commands.PublicarOferta;
 
-public sealed class PublicarOfertaHandler(IProyectoRepository proyectos)
+public sealed class PublicarOfertaHandler(
+    IProyectoRepository proyectos,
+    ICurrentUserService currentUser)
     : IRequestHandler<PublicarOfertaCommand, OportunidadProyectoDto>
 {
     public async Task<OportunidadProyectoDto> Handle(
         PublicarOfertaCommand request,
         CancellationToken cancellationToken)
     {
+        if (!currentUser.IsAuthenticated || currentUser.UserId == Guid.Empty)
+            throw new UnauthorizedAccessException("No se pudo identificar al cliente autenticado.");
+
         var proyecto = new Proyecto
         {
             Id = Guid.NewGuid(),
@@ -20,25 +25,20 @@ public sealed class PublicarOfertaHandler(IProyectoRepository proyectos)
             Disciplina = request.Disciplina.Trim(),
             Presupuesto = request.Presupuesto,
             FechaLimite = request.FechaLimite,
-            ClienteId = request.ClienteId,
-            NombreCliente = request.NombreCliente,
+            ClienteId = currentUser.UserId,
+            NombreCliente = "Cliente",
+            EsUrgente = request.EsUrgente,
+            HabilidadesRequeridas = request.HabilidadesRequeridas
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList(),
             Estado = Proyecto.EstadoAbierto,
             CreadoEn = DateTime.UtcNow
         };
 
         await proyectos.AgregarAsync(proyecto, cancellationToken);
 
-        return new OportunidadProyectoDto(
-            proyecto.Id,
-            proyecto.Titulo,
-            proyecto.Descripcion,
-            proyecto.Disciplina,
-            proyecto.Presupuesto,
-            proyecto.FechaLimite,
-            proyecto.EsUrgente,
-            proyecto.HabilidadesRequeridas,
-            proyecto.NombreCliente,
-            proyecto.Estado,
-            proyecto.CreadoEn);
+        return ProyectoMapper.ToDto(proyecto);
     }
 }

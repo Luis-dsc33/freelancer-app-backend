@@ -5,4 +5,6 @@ public sealed record PublicarOfertaRequest(
     string Descripcion,
     string Disciplina,
     decimal Presupuesto,
-    DateOnly FechaLimite);
+    DateOnly FechaLimite,
+    bool EsUrgente = false,
+    List<string>? HabilidadesRequeridas = null);

@@ -2,5 +2,6 @@ namespace Usuarios.Application.Interfaces;
 
 public interface ICurrentUserService
 {
-    Guid UsuarioId { get; }
+    Guid UserId { get; }
+    bool IsAuthenticated { get; }
 }

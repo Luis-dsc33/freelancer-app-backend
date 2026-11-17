@@ -11,6 +11,7 @@ public class UsuariosDbContext : DbContext
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<RecuperacionContrasena> RecuperacionesContrasena => Set<RecuperacionContrasena>();
     public DbSet<PerfilEstudiante> PerfilesEstudiante => Set<PerfilEstudiante>();
+    public DbSet<PerfilCliente> PerfilesCliente => Set<PerfilCliente>();
 
     public DbSet<TrabajoPortafolio> TrabajosPortafolio => Set<TrabajoPortafolio>();
 
@@ -54,6 +55,20 @@ public class UsuariosDbContext : DbContext
         modelBuilder.Entity<PerfilEstudiante>()
             .HasIndex(p => p.UsuarioId)
             .IsUnique();
+
+        modelBuilder.Entity<PerfilCliente>(entity =>
+        {
+            entity.HasIndex(p => p.UsuarioId).IsUnique();
+            entity.Property(p => p.NombreEmpresa).HasMaxLength(200).IsRequired();
+            entity.Property(p => p.Telefono).HasMaxLength(30).IsRequired();
+            entity.Property(p => p.Ubicacion).HasMaxLength(200).IsRequired();
+            entity.Property(p => p.Descripcion).HasMaxLength(2000).IsRequired();
+            entity.Property(p => p.DatosContacto).HasMaxLength(1000).IsRequired();
+            entity.HasOne(p => p.Usuario)
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         base.OnModelCreating(modelBuilder);   // ← buena práctica agregarla, aunque en este caso no hace nada extra
     }

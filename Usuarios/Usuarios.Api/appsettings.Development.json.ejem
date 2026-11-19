@@ -1,11 +1,28 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=db_nombre;Username=postgres;Password=PASSWORD_LOCAL"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=freelancer_db;Username=freelancer_admin;Password=PASSWORD_LOCAL"
   },
   "Jwt": {
     "Key": "nuestra-clave-secreta-de-al-menos-32-caracteres",
     "Issuer": "CodeBridge",
     "Audience": "CodeBridgeUsuarios",
     "ExpiraMinutos": 60
+  },
+  "PasswordReset": {
+    "ExpiresInMinutes": 30,
+    "ResetPageUrl": "http://localhost:8100/auth/restablecer-password"
+  },
+  "Smtp": {
+    "Host": "localhost",
+    "Port": 1025,
+    "Username": "",
+    "Password": "",
+    "FromEmail": "no-reply@codebridge.local",
+    "FromName": "CodeBridge"
+  },
+  "AdminInicial": {
+    "Nombre": "Administrador CodeBridge",
+    "Email": "admin@codebridge.local",
+    "Password": "CAMBIAR_POR_PASSWORD_LOCAL"
   }
 }

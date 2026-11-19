@@ -1,6 +1,9 @@
 @Marketplace.Api_HostAddress = http://localhost:5004
+@Token = PEGAR_AQUI_EL_JWT_DE_UN_ESTUDIANTE
 
-GET {{Marketplace.Api_HostAddress}}/weatherforecast/
+### Listar oportunidades (solo rol Estudiante)
+GET {{Marketplace.Api_HostAddress}}/api/Proyectos
+Authorization: Bearer {{Token}}
 Accept: application/json
 
 ###

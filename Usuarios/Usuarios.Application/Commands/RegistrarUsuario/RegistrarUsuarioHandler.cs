@@ -22,7 +22,11 @@ public class RegistrarUsuarioHandler : IRequestHandler<RegistrarUsuarioCommand, 
 
     public async Task<Guid> Handle(RegistrarUsuarioCommand request, CancellationToken ct)
     {
-        var existe = await _usuarioRepositorio.ExisteEmailAsync(request.Email);
+        // Normalizar ANTES de comparar y de guardar — evita que "Ana@X.com" y "ana@x.com"
+        // se traten como correos distintos (HU-01: un correo = una sola cuenta).
+        var emailNormalizado = request.Email.Trim().ToLowerInvariant();
+
+        var existe = await _usuarioRepositorio.ExisteEmailAsync(emailNormalizado);
         if (existe)
             throw new InvalidOperationException("El correo ya está registrado.");
 
@@ -30,12 +34,11 @@ public class RegistrarUsuarioHandler : IRequestHandler<RegistrarUsuarioCommand, 
         if (rol is null)
             throw new InvalidOperationException("El rol indicado no es válido.");
 
-        // Asignacion de la identidad segun el domain
         var usuario = new Usuario
         {
             Id = Guid.NewGuid(),
             Nombre = request.Nombre,
-            Email = request.Email,
+            Email = emailNormalizado,
             PasswordHash = _passwordHasher.Hash(request.Password),
             RolId = rol.Id,
             Estado = "Activo",

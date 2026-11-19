@@ -19,7 +19,10 @@ public class ObtenerPerfilHandler : IRequestHandler<ObtenerPerfilQuery, PerfilEs
 
     public async Task<PerfilEstudianteDto> Handle(ObtenerPerfilQuery request, CancellationToken cancellationToken)
     {
-        var usuarioId = _currentUser.UsuarioId;
+        if (!_currentUser.IsAuthenticated || _currentUser.UserId == Guid.Empty)
+            throw new UnauthorizedAccessException("No se pudo identificar al usuario autenticado.");
+
+        var usuarioId = _currentUser.UserId;
         var perfil = await _repository.ObtenerPorUsuarioIdAsync(usuarioId);
         var obligatorios = PerfilEstudiante.CamposObligatorios.ToList();
 

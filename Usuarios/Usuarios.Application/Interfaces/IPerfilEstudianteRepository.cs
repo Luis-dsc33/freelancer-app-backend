@@ -7,4 +7,10 @@ public interface IPerfilEstudianteRepository
     Task<PerfilEstudiante?> ObtenerPorUsuarioIdAsync(Guid usuarioId);
     Task AgregarAsync(PerfilEstudiante perfil);
     Task ActualizarAsync(PerfilEstudiante perfil);
+    Task<List<PerfilEstudiante>> BuscarPublicosAsync(
+        string? habilidad,
+        string? carrera,
+        int pagina,
+        int tamanoPagina,
+        CancellationToken cancellationToken);
 }

@@ -19,7 +19,10 @@ public class CrearOActualizarPerfilHandler : IRequestHandler<CrearOActualizarPer
 
     public async Task<Guid> Handle(CrearOActualizarPerfilCommand request, CancellationToken cancellationToken)
     {
-        var usuarioId = _currentUser.UsuarioId;
+        if (!_currentUser.IsAuthenticated || _currentUser.UserId == Guid.Empty)
+            throw new UnauthorizedAccessException("No se pudo identificar al usuario autenticado.");
+
+        var usuarioId = _currentUser.UserId;
         var carrera = request.Carrera.Trim();
         var descripcion = request.Descripcion.Trim();
         var habilidades = request.Habilidades

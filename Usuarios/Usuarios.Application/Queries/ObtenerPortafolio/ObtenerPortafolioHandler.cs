@@ -19,7 +19,9 @@ public class ObtenerPortafolioHandler(
     public Task<List<TrabajoPortafolioDto>> Handle(
         ObtenerMiPortafolioQuery request,
         CancellationToken cancellationToken) =>
-        ObtenerAsync(currentUser.UsuarioId, cancellationToken);
+            !currentUser.IsAuthenticated || currentUser.UserId == Guid.Empty
+                ? throw new UnauthorizedAccessException("No se pudo identificar al usuario autenticado.")
+                : ObtenerAsync(currentUser.UserId, cancellationToken);
 
     private async Task<List<TrabajoPortafolioDto>> ObtenerAsync(
         Guid usuarioId,

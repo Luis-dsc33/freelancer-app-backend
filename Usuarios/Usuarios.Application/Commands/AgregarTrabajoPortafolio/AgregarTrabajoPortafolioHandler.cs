@@ -13,7 +13,10 @@ public class AgregarTrabajoPortafolioHandler(
 {
     public async Task<Guid> Handle(AgregarTrabajoPortafolioCommand request, CancellationToken cancellationToken)
     {
-        var usuarioId = currentUser.UsuarioId;
+        if (!currentUser.IsAuthenticated || currentUser.UserId == Guid.Empty)
+            throw new UnauthorizedAccessException("No se pudo identificar al usuario autenticado.");
+
+        var usuarioId = currentUser.UserId;
         var usuario = await usuarios.ObtenerPorIdAsync(usuarioId, cancellationToken);
         if (usuario is null || usuario.Rol.Nombre != "Estudiante" || usuario.Estado != "Activo")
             throw new InvalidOperationException("Solo un estudiante activo puede administrar su portafolio.");

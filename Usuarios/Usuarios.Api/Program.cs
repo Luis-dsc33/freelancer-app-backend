@@ -7,7 +7,6 @@ using Microsoft.IdentityModel.Tokens;
 using Usuarios.Api.Middleware;
 using Usuarios.Application.Behaviors;
 using Usuarios.Application.Interfaces;
-using Usuarios.Api.Services;
 using Usuarios.Infrastructure.Persistence;
 using Usuarios.Infrastructure.Security;
 
@@ -52,6 +51,7 @@ builder.Services.AddScoped<IRecuperacionContrasenaRepository, RecuperacionContra
 builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddSingleton<IPasswordResetSettings, PasswordResetSettings>();
 builder.Services.AddScoped<IPerfilEstudianteRepository, PerfilEstudianteRepository>();
+builder.Services.AddScoped<IPerfilClienteRepository, PerfilClienteRepository>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<AdminInicialSeeder>();

@@ -13,7 +13,8 @@ public class CrearOActualizarPerfilHandlerTests
         var usuarioAutenticadoId = Guid.NewGuid();
         var repository = new Mock<IPerfilEstudianteRepository>();
         var currentUser = new Mock<ICurrentUserService>();
-        currentUser.Setup(user => user.UsuarioId).Returns(usuarioAutenticadoId);
+        currentUser.Setup(user => user.UserId).Returns(usuarioAutenticadoId);
+        currentUser.Setup(user => user.IsAuthenticated).Returns(true);
         repository.Setup(repo => repo.ObtenerPorUsuarioIdAsync(usuarioAutenticadoId))
             .ReturnsAsync((PerfilEstudiante?)null);
         PerfilEstudiante? perfilGuardado = null;

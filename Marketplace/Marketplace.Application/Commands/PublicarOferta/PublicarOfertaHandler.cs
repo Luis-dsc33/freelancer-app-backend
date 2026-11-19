@@ -26,7 +26,7 @@ public sealed class PublicarOfertaHandler(
             Presupuesto = request.Presupuesto,
             FechaLimite = request.FechaLimite,
             ClienteId = currentUser.UserId,
-            NombreCliente = "Cliente",
+            NombreCliente = string.IsNullOrWhiteSpace(currentUser.Nombre) ? "Cliente" : currentUser.Nombre,
             EsUrgente = request.EsUrgente,
             HabilidadesRequeridas = request.HabilidadesRequeridas
                 .Where(x => !string.IsNullOrWhiteSpace(x))

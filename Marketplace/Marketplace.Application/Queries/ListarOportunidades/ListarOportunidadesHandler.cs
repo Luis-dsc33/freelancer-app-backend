@@ -3,29 +3,44 @@ using MediatR;
 
 namespace Marketplace.Application.Queries.ListarOportunidades;
 
-public class ListarOportunidadesHandler(IProyectoRepository proyectos)
+public class ListarOportunidadesHandler(
+    IProyectoRepository proyectos,
+    IPostulacionRepository postulaciones,
+    ICurrentUserService currentUser)
     : IRequestHandler<ListarOportunidadesQuery, IReadOnlyList<OportunidadProyectoDto>>
 {
     public async Task<IReadOnlyList<OportunidadProyectoDto>> Handle(
-        ListarOportunidadesQuery request, CancellationToken cancellationToken)
+        ListarOportunidadesQuery request,
+        CancellationToken cancellationToken)
     {
-        // El repositorio ya devuelve solo proyectos "Abierto", ordenados por esUrgente DESC, creadoEn DESC.
-        var pageNumber = Math.Max(1, request.PageNumber);
+        var pageNumber = Math.Max(1, request.Page);
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
-        var lista = await proyectos.ObtenerAbiertosAsync(pageNumber, pageSize, cancellationToken);
 
-        return lista.Select(p => new OportunidadProyectoDto(
-                p.Id,
-                p.Titulo,
-                p.Descripcion,
-                p.Disciplina,
-                p.Presupuesto,
-                p.FechaLimite,
-                p.EsUrgente,
-                (IReadOnlyList<string>)(p.HabilidadesRequeridas ?? new List<string>()).ToList(), // nunca null
-                p.NombreCliente,
-                p.Estado,
-                DateTime.SpecifyKind(p.CreadoEn, DateTimeKind.Utc)))
+        var filtro = new FiltroOportunidadesProyecto(
+            request.Busqueda,
+            request.Disciplina,
+            request.Modalidad,
+            request.PresupuestoMin,
+            request.PresupuestoMax,
+            request.SoloUrgentes,
+            request.SkillIds,
+            request.Habilidad,
+            pageNumber,
+            pageSize);
+
+        var lista = await proyectos.BuscarAbiertosAsync(filtro, cancellationToken);
+
+        HashSet<Guid> proyectosPostulados = [];
+        if (currentUser.IsAuthenticated && currentUser.UserId != Guid.Empty && currentUser.EsEstudiante && lista.Count > 0)
+        {
+            proyectosPostulados = await postulaciones.ObtenerProyectosPostuladosPorEstudianteAsync(
+                currentUser.UserId,
+                lista.Select(p => p.Id),
+                cancellationToken);
+        }
+
+        return lista
+            .Select(p => ProyectoMapper.ToDto(p, proyectosPostulados.Contains(p.Id)))
             .ToList();
     }
 }

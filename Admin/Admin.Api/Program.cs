@@ -1,5 +1,7 @@
+using Microsoft.Extensions.DependencyInjection.Extensions; // ADMIN Marcos: TryAddTransient
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using FluentValidation;
 using MediatR;
@@ -70,6 +72,23 @@ else
     Registrar<ICasosClient, CasosClient>("Servicios:CasosUrl");
 }
 
+// ADMIN Marcos: HU-25 / HU-21 / HU-26 / HU-27 — bitácora, administrador actual y operaciones en servicios dueños.
+// Estas operaciones siempre usan los servicios reales (no hay versión de demostración).
+builder.Services.AddScoped<IAccionAdministrativaRepository, AccionAdministrativaRepository>();
+builder.Services.AddScoped<IUsuarioActual, Admin.Infrastructure.Security.UsuarioActual>();
+builder.Services.TryAddTransient<ReenviarTokenHandler>();
+
+void ConfigurarServicio(HttpClient http, string claveUrl)
+{
+    // URL vacía o inválida: la operación responde "servicio no disponible" (HU-21-04)
+    if (Uri.TryCreate(builder.Configuration[claveUrl], UriKind.Absolute, out var url)) http.BaseAddress = url;
+    http.Timeout = TimeSpan.FromSeconds(5);
+}
+builder.Services.AddHttpClient<IUsuariosAdminClient, UsuariosAdminClient>(http => ConfigurarServicio(http, "Servicios:UsuariosUrl"))
+    .AddHttpMessageHandler<ReenviarTokenHandler>();
+builder.Services.AddHttpClient<IMarketplaceAdminClient, MarketplaceAdminClient>(http => ConfigurarServicio(http, "Servicios:MarketplaceUrl"))
+    .AddHttpMessageHandler<ReenviarTokenHandler>();
+
 builder.Services.AddDbContext<AdminDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -82,7 +101,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
         };
     });
 builder.Services.AddControllers();
@@ -102,23 +122,58 @@ builder.Services.AddSwaggerGen(c =>
         [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
-// -- EMMA 23/09/2026: SE AGREGO LO DE CORS PARA QUE EL FRONT PUEDA CONSUMIR EL API
+var origenesPermitidos = new HashSet<string>(
+    [
+        "http://localhost:8100",
+        "http://localhost:4200",
+        "http://localhost",
+        "https://localhost",
+        "capacitor://localhost",
+        "ionic://localhost"
+    ],
+    StringComparer.OrdinalIgnoreCase);
+
+var origenesConfigurados = new List<string>();
+var origenesCsv = builder.Configuration["Cors:AllowedOrigins"];
+if (!string.IsNullOrWhiteSpace(origenesCsv))
+    origenesConfigurados.AddRange(origenesCsv.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+var origenesArray = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (origenesArray is { Length: > 0 })
+    origenesConfigurados.AddRange(origenesArray);
+
+foreach (var origen in origenesConfigurados)
+{
+    var normalizado = origen.Trim().TrimEnd('/');
+    if (!string.IsNullOrWhiteSpace(normalizado))
+        origenesPermitidos.Add(normalizado);
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:8100",             // ESTE ES DESARROLLO LOCAL
-                "http://localhost:4200",             // FRONTEND LOCAL
-                "https://falta-dominio-frontend.com"    // AJUSTAMOS ESTE PA CUANDO YA ESTE ARRIBA
-              )
+        policy.WithOrigins([.. origenesPermitidos])
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
+
+if (app.Environment.IsProduction() && origenesConfigurados.Count == 0)
+{
+    app.Logger.LogWarning("Cors:AllowedOrigins no está configurado; configura CORS_ALLOWED_ORIGINS en .env con el dominio HTTPS del frontend.");
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -133,5 +188,21 @@ app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous().ExcludeFromDescription();
+
+// ADMIN Marcos: aplica las migraciones del schema "admin" al arrancar (igual que Usuarios y Marketplace)
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<AdminDbContext>().Database.Migrate();
+        logger.LogInformation("Migraciones aplicadas correctamente.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al aplicar migraciones de Entity Framework.");
+    }
+}
 
 app.Run();

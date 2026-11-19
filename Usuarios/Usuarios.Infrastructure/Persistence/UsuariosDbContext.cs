@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Usuarios.Domain.Entities;
 
 namespace Usuarios.Infrastructure.Persistence;
@@ -11,6 +11,7 @@ public class UsuariosDbContext : DbContext
     public DbSet<Rol> Roles => Set<Rol>();
     public DbSet<RecuperacionContrasena> RecuperacionesContrasena => Set<RecuperacionContrasena>();
     public DbSet<PerfilEstudiante> PerfilesEstudiante => Set<PerfilEstudiante>();
+    public DbSet<EstudianteSkill> EstudianteSkills => Set<EstudianteSkill>();
     public DbSet<PerfilCliente> PerfilesCliente => Set<PerfilCliente>();
 
     public DbSet<TrabajoPortafolio> TrabajosPortafolio => Set<TrabajoPortafolio>();
@@ -52,9 +53,24 @@ public class UsuariosDbContext : DbContext
         });
 
         // HU-04 escenario 02: un unico perfil por cuenta de usuario
-        modelBuilder.Entity<PerfilEstudiante>()
-            .HasIndex(p => p.UsuarioId)
-            .IsUnique();
+        modelBuilder.Entity<PerfilEstudiante>(entity =>
+        {
+            entity.HasIndex(p => p.UsuarioId).IsUnique();
+            entity.HasMany(p => p.SkillsCatalogo)
+                .WithOne(s => s.PerfilEstudiante)
+                .HasForeignKey(s => s.PerfilEstudianteId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<EstudianteSkill>(entity =>
+        {
+            entity.ToTable("EstudianteSkills", "usuarios");
+            entity.HasKey(s => s.Id);
+            entity.HasIndex(s => new { s.PerfilEstudianteId, s.SkillId }).IsUnique();
+            entity.Property(s => s.NombreSkill).HasMaxLength(120).IsRequired();
+            entity.Property(s => s.Categoria).HasMaxLength(120);
+            entity.Property(s => s.NivelDominio).HasMaxLength(30).IsRequired();
+        });
 
         modelBuilder.Entity<PerfilCliente>(entity =>
         {

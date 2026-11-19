@@ -22,4 +22,15 @@ public sealed class CurrentUserService(IHttpContextAccessor httpContextAccessor)
         }
     }
 
+    public string? Role =>
+        httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Role)
+        ?? httpContextAccessor.HttpContext?.User.FindFirstValue("role");
+
+    public string? Nombre =>
+        httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Name)
+        ?? httpContextAccessor.HttpContext?.User.FindFirstValue("name");
+
+    public bool EsEstudiante => string.Equals(Role, "Estudiante", StringComparison.OrdinalIgnoreCase);
+
+    public bool EsCliente => string.Equals(Role, "Cliente", StringComparison.OrdinalIgnoreCase);
 }

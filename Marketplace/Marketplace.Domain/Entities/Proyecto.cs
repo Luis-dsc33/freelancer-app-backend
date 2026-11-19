@@ -9,6 +9,8 @@ public class Proyecto
 {
     public const string EstadoBorrador = "Borrador";
     public const string EstadoAbierto = "Abierto";
+    /// <summary>Oferta ocultada por un administrador (moderación). Solo el admin puede restaurarla.</summary>
+    public const string EstadoOculta = "Oculta";
     public const string EstadoPublicada = "Publicada";
     public const string EstadoEnProceso = "EnProceso";
     public const string EstadoCerrado = "Cerrado";

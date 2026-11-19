@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Usuarios.Application.Commands.CrearOActualizarPerfil;
+using Usuarios.Application.Commands.GuardarPerfilEstudiante;
 using Usuarios.Application.Queries.ObtenerPerfil;
 
 namespace Usuarios.Api.Controllers;
@@ -18,10 +18,22 @@ public class PerfilesController(IMediator mediator) : ControllerBase
     [HttpPost("mi-perfil")]
     [HttpPut("mi-perfil")]
     public async Task<IActionResult> GuardarPerfil(
-        CrearOActualizarPerfilCommand command,
+        [FromBody] GuardarPerfilEstudianteRequest request,
         CancellationToken cancellationToken)
     {
-        var resultId = await mediator.Send(command, cancellationToken);
-        return Ok(new { PerfilId = resultId });
+        var resultado = await mediator.Send(
+            new GuardarPerfilEstudianteCommand(
+                request.Carrera,
+                request.Descripcion,
+                request.Habilidades ?? [],
+                request.SkillsCatalogo),
+            cancellationToken);
+        return Ok(resultado);
     }
 }
+
+public sealed record GuardarPerfilEstudianteRequest(
+    string Carrera,
+    string Descripcion,
+    List<string>? Habilidades,
+    List<EstudianteSkillInputDto>? SkillsCatalogo);

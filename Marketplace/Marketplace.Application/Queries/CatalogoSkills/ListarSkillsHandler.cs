@@ -8,6 +8,6 @@ public sealed class ListarSkillsHandler(ISkillCatalogRepository repository)
 {
     public async Task<IReadOnlyList<SkillDto>> Handle(ListarSkillsQuery request, CancellationToken cancellationToken) =>
         (await repository.ObtenerSkillsAsync(request.CategoriaId, cancellationToken))
-            .Select(x => new SkillDto(x.Id, x.Nombre, x.Descripcion, x.CategoriaId, x.Categoria.Nombre))
+            .Select(x => new SkillDto(x.Id, x.Nombre, x.Descripcion, x.CategoriaId, x.Categoria.Nombre, x.Activo))
             .ToList();
 }

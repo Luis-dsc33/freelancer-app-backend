@@ -35,9 +35,17 @@ public class AdminInicialSeeder
 
     public async Task SembrarAsync()
     {
-        var email = _config["AdminInicial:Email"]?.Trim().ToLowerInvariant();
-        var password = _config["AdminInicial:Password"];
-        var nombre = _config["AdminInicial:Nombre"] ?? "Administrador";
+        // TEMPORAL: credenciales por defecto hardcodeadas para probar funciones de Admin en producción.
+        // Eliminar estos valores por defecto y usar solo AdminInicial:* (variables de entorno) al terminar pruebas.
+        var email = (string.IsNullOrWhiteSpace(_config["AdminInicial:Email"])
+            ? "admin@codebridge.com"
+            : _config["AdminInicial:Email"]!).Trim().ToLowerInvariant();
+        var password = string.IsNullOrWhiteSpace(_config["AdminInicial:Password"])
+            ? "AdminCodeBridge2026!"
+            : _config["AdminInicial:Password"]!;
+        var nombre = string.IsNullOrWhiteSpace(_config["AdminInicial:Nombre"])
+            ? "Administrador CodeBridge"
+            : _config["AdminInicial:Nombre"]!;
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {

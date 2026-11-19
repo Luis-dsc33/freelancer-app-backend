@@ -24,5 +24,8 @@
     "Nombre": "Administrador CodeBridge",
     "Email": "admin@codebridge.local",
     "Password": "CAMBIAR_POR_PASSWORD_LOCAL"
+  },
+  "Servicios": {
+    "MarketplaceUrl": "http://localhost:5004/"
   }
 }

@@ -20,12 +20,12 @@ public class ProyectoAdminRepository(MarketplaceDbContext context) : IProyectoAd
 
     public Task GuardarCambiosAsync(CancellationToken ct) => context.SaveChangesAsync(ct);
 
-    public Task<int> ContarPorEstadoAsync(string estado, CancellationToken ct) =>
-        context.Proyectos.CountAsync(p => p.Estado == estado, ct);
+    public Task<int> ContarPorEstadosAsync(IReadOnlyCollection<string> estados, CancellationToken ct) =>
+        context.Proyectos.CountAsync(p => estados.Contains(p.Estado), ct);
 
-    public Task<Dictionary<string, int>> ContarPorDisciplinaAsync(string estado, CancellationToken ct) =>
+    public Task<Dictionary<string, int>> ContarPorDisciplinaAsync(IReadOnlyCollection<string> estados, CancellationToken ct) =>
         context.Proyectos
-            .Where(p => p.Estado == estado)
+            .Where(p => estados.Contains(p.Estado))
             .GroupBy(p => p.Disciplina)
             .Select(g => new { Disciplina = g.Key, Total = g.Count() })
             .ToDictionaryAsync(x => x.Disciplina, x => x.Total, ct);

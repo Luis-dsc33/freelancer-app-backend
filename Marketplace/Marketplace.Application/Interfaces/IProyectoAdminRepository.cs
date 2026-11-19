@@ -10,7 +10,7 @@ public interface IProyectoAdminRepository
     Task<Proyecto?> ObtenerParaActualizarAsync(Guid id, CancellationToken ct);
     Task GuardarCambiosAsync(CancellationToken ct);
 
-    Task<int> ContarPorEstadoAsync(string estado, CancellationToken ct);
-    Task<Dictionary<string, int>> ContarPorDisciplinaAsync(string estado, CancellationToken ct);
+    Task<int> ContarPorEstadosAsync(IReadOnlyCollection<string> estados, CancellationToken ct);
+    Task<Dictionary<string, int>> ContarPorDisciplinaAsync(IReadOnlyCollection<string> estados, CancellationToken ct);
     Task<List<DateTime>> FechasDeCreacionDesdeAsync(DateTime desde, CancellationToken ct);
 }

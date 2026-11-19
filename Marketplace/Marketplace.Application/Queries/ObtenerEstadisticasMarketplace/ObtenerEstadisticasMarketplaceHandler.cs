@@ -9,11 +9,13 @@ public class ObtenerEstadisticasMarketplaceHandler(IProyectoAdminRepository repo
     : IRequestHandler<ObtenerEstadisticasMarketplaceQuery, EstadisticasMarketplaceDto>
 {
     private const int Semanas = 8;
+    // Las ofertas visibles para estudiantes usan tanto Abierto (flujo inicial) como Publicada (flujo Cliente).
+    private static readonly string[] EstadosDisponibles = [Proyecto.EstadoAbierto, Proyecto.EstadoPublicada];
 
     public async Task<EstadisticasMarketplaceDto> Handle(ObtenerEstadisticasMarketplaceQuery request, CancellationToken ct)
     {
-        var disponibles = await repositorio.ContarPorEstadoAsync(Proyecto.EstadoAbierto, ct);
-        var porDisciplina = await repositorio.ContarPorDisciplinaAsync(Proyecto.EstadoAbierto, ct);
+        var disponibles = await repositorio.ContarPorEstadosAsync(EstadosDisponibles, ct);
+        var porDisciplina = await repositorio.ContarPorDisciplinaAsync(EstadosDisponibles, ct);
 
         var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
         var lunesActual = hoy.AddDays(-(((int)hoy.DayOfWeek + 6) % 7));

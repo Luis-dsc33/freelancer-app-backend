@@ -74,6 +74,8 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
+      - Servicios__UsuariosUrl=http://usuarios-api:8080/
+      - Servicios__MarketplaceUrl=http://marketplace-api:8080/
       - ASPNETCORE_ENVIRONMENT=Production
     depends_on:
       postgres:

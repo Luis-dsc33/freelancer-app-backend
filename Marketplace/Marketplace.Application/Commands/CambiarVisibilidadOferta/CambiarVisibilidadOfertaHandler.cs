@@ -10,7 +10,7 @@ namespace Marketplace.Application.Commands.CambiarVisibilidadOferta;
 public class CambiarVisibilidadOfertaHandler(IProyectoAdminRepository repositorio)
     : IRequestHandler<CambiarVisibilidadOfertaCommand, OfertaAdminDto>
 {
-    public const string EstadoOculta = "Oculta";
+    public const string EstadoOculta = Proyecto.EstadoOculta;
 
     public async Task<OfertaAdminDto> Handle(CambiarVisibilidadOfertaCommand request, CancellationToken ct)
     {

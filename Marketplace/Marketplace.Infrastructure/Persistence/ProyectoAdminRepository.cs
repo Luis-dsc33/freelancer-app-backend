@@ -32,4 +32,10 @@ public class ProyectoAdminRepository(MarketplaceDbContext context) : IProyectoAd
 
     public Task<List<DateTime>> FechasDeCreacionDesdeAsync(DateTime desde, CancellationToken ct) =>
         context.Proyectos.Where(p => p.CreadoEn >= desde).Select(p => p.CreadoEn).ToListAsync(ct);
+
+    public Task<Dictionary<string, int>> ContarPostulacionesPorEstadoAsync(CancellationToken ct) =>
+        context.Postulaciones
+            .GroupBy(p => p.Estado)
+            .Select(g => new { Estado = g.Key, Total = g.Count() })
+            .ToDictionaryAsync(x => x.Estado, x => x.Total, ct);
 }

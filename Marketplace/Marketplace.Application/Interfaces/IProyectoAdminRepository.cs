@@ -13,4 +13,5 @@ public interface IProyectoAdminRepository
     Task<int> ContarPorEstadosAsync(IReadOnlyCollection<string> estados, CancellationToken ct);
     Task<Dictionary<string, int>> ContarPorDisciplinaAsync(IReadOnlyCollection<string> estados, CancellationToken ct);
     Task<List<DateTime>> FechasDeCreacionDesdeAsync(DateTime desde, CancellationToken ct);
+    Task<Dictionary<string, int>> ContarPostulacionesPorEstadoAsync(CancellationToken ct);
 }

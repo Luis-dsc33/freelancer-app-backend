@@ -1,0 +1,13 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=freelancer_db;Username=freelancer_admin;Password=PASSWORD_LOCAL"
+  },
+  "Jwt": {
+    "Key": "nuestra-clave-secreta-de-al-menos-32-caracteres",
+    "Issuer": "CodeBridge",
+    "Audience": "CodeBridgeUsuarios"
+  },
+  "Servicios": {
+    "UsuariosUrl": "http://localhost:5210/"
+  }
+}

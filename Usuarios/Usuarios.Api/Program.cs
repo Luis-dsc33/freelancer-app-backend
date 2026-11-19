@@ -1,12 +1,14 @@
-﻿using System.Text;
+using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Usuarios.Api.Middleware;
 using Usuarios.Application.Behaviors;
 using Usuarios.Application.Interfaces;
+using Usuarios.Infrastructure.Clients;
 using Usuarios.Infrastructure.Persistence;
 using Usuarios.Infrastructure.Security;
 
@@ -63,6 +65,15 @@ builder.Services.AddHttpClient<IPasswordStrengthChecker, HibpPasswordStrengthChe
     client.DefaultRequestHeaders.Add("User-Agent", "UsuariosApp-UTSJR");
 });
 
+builder.Services.AddTransient<JwtForwardingHandler>();
+builder.Services.AddHttpClient<ICatalogoSkillsMarketplaceClient, CatalogoSkillsMarketplaceClient>(client =>
+    {
+        if (Uri.TryCreate(builder.Configuration["Servicios:MarketplaceUrl"], UriKind.Absolute, out var url))
+            client.BaseAddress = url;
+        client.Timeout = TimeSpan.FromSeconds(5);
+    })
+    .AddHttpMessageHandler<JwtForwardingHandler>();
+
 // --- Autenticacion JWT ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -75,7 +86,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ClockSkew = TimeSpan.Zero
         };
     });
 builder.Services.AddAuthorization();
@@ -85,23 +97,58 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
-// -- EMMA 23/09/2026: SE AGREGO LO DE CORS PARA QUE EL FRONT PUEDA CONSUMIR EL API
+var origenesPermitidos = new HashSet<string>(
+    [
+        "http://localhost:8100",
+        "http://localhost:4200",
+        "http://localhost",
+        "https://localhost",
+        "capacitor://localhost",
+        "ionic://localhost"
+    ],
+    StringComparer.OrdinalIgnoreCase);
+
+var origenesConfigurados = new List<string>();
+var origenesCsv = builder.Configuration["Cors:AllowedOrigins"];
+if (!string.IsNullOrWhiteSpace(origenesCsv))
+    origenesConfigurados.AddRange(origenesCsv.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+var origenesArray = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (origenesArray is { Length: > 0 })
+    origenesConfigurados.AddRange(origenesArray);
+
+foreach (var origen in origenesConfigurados)
+{
+    var normalizado = origen.Trim().TrimEnd('/');
+    if (!string.IsNullOrWhiteSpace(normalizado))
+        origenesPermitidos.Add(normalizado);
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:8100",           // ESTE ES DESARROLLO LOCAL
-                "http://localhost:4200",           // FRONTEND LOCAL
-                "https://falta-dominio-frontend.com"  // AJUSTAMOS ESTE PA CUANDO YA ESTE ARRIBA 
-              )
+        policy.WithOrigins([.. origenesPermitidos])
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
+
+if (app.Environment.IsProduction() && origenesConfigurados.Count == 0)
+{
+    app.Logger.LogWarning("Cors:AllowedOrigins no está configurado; configura CORS_ALLOWED_ORIGINS en .env con el dominio HTTPS del frontend.");
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -115,6 +162,7 @@ app.UseCors("FrontendPolicy");
 app.UseAuthentication();   // este siempre va ANTES de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok(new { status = "healthy" })).AllowAnonymous().ExcludeFromDescription();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {

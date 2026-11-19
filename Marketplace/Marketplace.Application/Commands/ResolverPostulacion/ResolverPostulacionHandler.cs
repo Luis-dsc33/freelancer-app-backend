@@ -21,8 +21,11 @@ public sealed class ResolverPostulacionHandler(
             throw new UnauthorizedAccessException("La postulación no pertenece a una oferta del cliente autenticado.");
         if (postulacion.Estado != Postulacion.EstadoPendiente)
             throw new InvalidOperationException("La postulación ya fue resuelta.");
-        if (postulacion.Proyecto.Estado != Proyecto.EstadoAbierto)
-            throw new InvalidOperationException("La oferta no está disponible.");
+        if (postulacion.Proyecto.Estado != Proyecto.EstadoAbierto &&
+            postulacion.Proyecto.Estado != Proyecto.EstadoPublicada)
+        {
+            throw new InvalidOperationException("Solo se pueden resolver postulaciones de ofertas abiertas o publicadas.");
+        }
 
         if (request.Estado == Postulacion.EstadoAceptada)
         {

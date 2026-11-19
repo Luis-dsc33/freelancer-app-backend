@@ -16,6 +16,7 @@ public class ResenasDbContext(DbContextOptions<ResenasDbContext> options) : DbCo
             entity.Property(r => r.Comentario).HasMaxLength(2000).IsRequired();
             entity.HasIndex(r => new { r.ContratoId, r.AutorId, r.DestinatarioId }).IsUnique();
             entity.HasIndex(r => r.DestinatarioId);
+            entity.HasIndex(r => r.AutorId);
         });
         base.OnModelCreating(modelBuilder);
     }

@@ -31,11 +31,20 @@ public class ObtenerEstadisticasMarketplaceHandler(IProyectoAdminRepository repo
             })))
             .ToList();
 
+        var postulaciones = await repositorio.ContarPostulacionesPorEstadoAsync(ct) ?? [];
+        var pendientes = postulaciones.GetValueOrDefault(Postulacion.EstadoPendiente);
+        var aceptadas = postulaciones.GetValueOrDefault(Postulacion.EstadoAceptada);
+        var rechazadas = postulaciones.GetValueOrDefault(Postulacion.EstadoRechazada);
+        var retiradas = postulaciones.GetValueOrDefault(Postulacion.EstadoRetirada);
+
         return new EstadisticasMarketplaceDto(
             disponibles,
             porDisciplina.Select(d => new ConteoDto(d.Key, d.Value)).OrderByDescending(d => d.Total).ToList(),
             porSemana,
-            // Las postulaciones (HU-09/HU-11) aún no existen en Marketplace: se reportan en cero y el panel muestra "Sin datos"
-            new EmbudoPostulacionesDto(0, 0, 0, 0));
+            new EmbudoPostulacionesDto(
+                Enviadas: pendientes + aceptadas + rechazadas + retiradas,
+                EnRevision: pendientes,
+                Aceptadas: aceptadas,
+                NoSeleccionadas: rechazadas + retiradas));
     }
 }

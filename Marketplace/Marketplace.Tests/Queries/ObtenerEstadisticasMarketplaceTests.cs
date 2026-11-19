@@ -29,6 +29,15 @@ public class ObtenerEstadisticasMarketplaceTests
         repositorio
             .Setup(r => r.FechasDeCreacionDesdeAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([DateTime.UtcNow]);
+        repositorio
+            .Setup(r => r.ContarPostulacionesPorEstadoAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<string, int>
+            {
+                [Postulacion.EstadoPendiente] = 4,
+                [Postulacion.EstadoAceptada] = 2,
+                [Postulacion.EstadoRechazada] = 1,
+                [Postulacion.EstadoRetirada] = 1
+            });
 
         var handler = new ObtenerEstadisticasMarketplaceHandler(repositorio.Object);
 
@@ -43,5 +52,10 @@ public class ObtenerEstadisticasMarketplaceTests
         Assert.Contains(Proyecto.EstadoPublicada, estadosDisciplina!);
         Assert.Equal(2, dto.OfertasPorDisciplina.Count);
         Assert.Equal("Desarrollo de software", dto.OfertasPorDisciplina[0].Etiqueta);
+        Assert.Equal(8, dto.Postulaciones.Enviadas);
+        Assert.Equal(4, dto.Postulaciones.EnRevision);
+        Assert.Equal(2, dto.Postulaciones.Aceptadas);
+        Assert.Equal(2, dto.Postulaciones.NoSeleccionadas);
     }
 }
+

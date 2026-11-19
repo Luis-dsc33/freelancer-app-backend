@@ -11,4 +11,8 @@ public sealed record ContratoDto(
     DateOnly FechaCompromiso,
     string Estado,
     DateTime CreadoEn,
-    DateTime? CerradoEn);
+    DateTime? CerradoEn)
+{
+    public string? TituloProyecto { get; init; }
+    public string? NombreCliente { get; init; }
+}

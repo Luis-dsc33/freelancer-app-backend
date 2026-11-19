@@ -3,4 +3,5 @@
   <Project Path="Chat.Application/Chat.Application.csproj" />
   <Project Path="Chat.Domain/Chat.Domain.csproj" />
   <Project Path="Chat.Infrastructure/Chat.Infrastructure.csproj" />
+  <Project Path="Chat.Tests/Chat.Tests.csproj" />
 </Solution>

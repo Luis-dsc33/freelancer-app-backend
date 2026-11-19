@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using FluentValidation;
 using Usuarios.Application.Exceptions;
@@ -40,7 +40,20 @@ public class ExceptionHandlingMiddleware
                 error = "No se pudo procesar la solicitud en este momento. Inténtalo más tarde."
             }));
         }
+        catch (ServicioNoDisponibleException ex)
+        {
+            _logger.LogWarning(ex, "Servicio dependiente no disponible");
+            context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
+        }
         catch (RecursoNoEncontradoException ex)
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
+        }
+        catch (KeyNotFoundException ex)
         {
             context.Response.StatusCode = (int)HttpStatusCode.NotFound;
             context.Response.ContentType = "application/json";
@@ -48,13 +61,30 @@ public class ExceptionHandlingMiddleware
         }
         catch (UnauthorizedAccessException ex)
         {
-            _logger.LogWarning(ex, "No se pudo identificar al usuario autenticado");
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            _logger.LogWarning(ex, "Acceso denegado o usuario no autenticado");
+            var status = context.User?.Identity?.IsAuthenticated == true
+                ? HttpStatusCode.Forbidden
+                : HttpStatusCode.Unauthorized;
+            context.Response.StatusCode = (int)status;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync(JsonSerializer.Serialize(new
-            {
-                error = "No se pudo identificar al usuario autenticado."
-            }));
+            var mensaje = status == HttpStatusCode.Forbidden && !string.IsNullOrWhiteSpace(ex.Message)
+                ? ex.Message
+                : "No se pudo identificar al usuario autenticado.";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = mensaje }));
+        }
+        catch (ConflictException ex)
+        {
+            _logger.LogWarning(ex, "Conflicto de estado o duplicado");
+            context.Response.StatusCode = (int)HttpStatusCode.Conflict;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
+        }
+        catch (DomainException ex)
+        {
+            _logger.LogWarning(ex, "Regla de dominio rechazada");
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
         }
         catch (InvalidOperationException ex)
         {

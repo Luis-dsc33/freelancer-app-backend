@@ -8,7 +8,9 @@ using Marketplace.Application.Commands.CerrarOferta;
 using Marketplace.Application.Commands.EliminarOferta;
 using Marketplace.Application.Queries.ListarMisOfertas;
 using Marketplace.Application.Queries.ListarOportunidades;
+using Marketplace.Application.Queries.ObtenerDetalleOportunidad;
 using Marketplace.Application.Queries.ObtenerMiOferta;
+using Marketplace.Application.Queries.ParticipacionChat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -131,9 +133,46 @@ public class ProyectosController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Estudiante")]
-    public async Task<ActionResult<IReadOnlyList<OportunidadProyectoDto>>> Listar([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    public async Task<ActionResult<IReadOnlyList<OportunidadProyectoDto>>> Listar(
+        [FromQuery] string? busqueda = null,
+        [FromQuery] string? disciplina = null,
+        [FromQuery] string? modalidad = null,
+        [FromQuery] decimal? presupuestoMin = null,
+        [FromQuery] decimal? presupuestoMax = null,
+        [FromQuery] bool? soloUrgentes = null,
+        [FromQuery] List<Guid>? skillIds = null,
+        [FromQuery] string? habilidad = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var resultado = await _mediator.Send(new ListarOportunidadesQuery(page, pageSize), ct);
+        var resultado = await _mediator.Send(
+            new ListarOportunidadesQuery(
+                busqueda,
+                disciplina,
+                modalidad,
+                presupuestoMin,
+                presupuestoMax,
+                soloUrgentes,
+                skillIds,
+                habilidad,
+                page,
+                pageSize),
+            ct);
         return Ok(resultado);
     }
+
+    [HttpGet("{id:guid}")]
+    [Authorize]
+    public async Task<ActionResult<OportunidadProyectoDto>> ObtenerDetalle(Guid id, CancellationToken ct = default)
+        => Ok(await _mediator.Send(new ObtenerDetalleOportunidadQuery(id), ct));
+
+    [HttpGet("{id:guid}/participacion-chat")]
+    [Authorize(Roles = "Cliente,Estudiante")]
+    public async Task<ActionResult<ParticipacionChatDto>> ObtenerParticipacionChat(
+        Guid id,
+        [FromQuery] Guid? postulacionId = null,
+        [FromQuery] Guid? contratoId = null,
+        CancellationToken ct = default)
+        => Ok(await _mediator.Send(new ObtenerParticipacionChatQuery(id, postulacionId, contratoId), ct));
 }

@@ -1,10 +1,11 @@
-﻿using Usuarios.Domain.Entities;
+using Usuarios.Domain.Entities;
 
 namespace Usuarios.Application.Interfaces;
 
 public interface IUsuarioRepository
 {
     Task<Usuario?> ObtenerPorIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<IReadOnlyDictionary<Guid, string>> ObtenerNombresPorIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
     Task<bool> ExisteEmailAsync(string email);
     Task AgregarAsync(Usuario usuario);
     Task<List<Usuario>> ObtenerTodosAsync();

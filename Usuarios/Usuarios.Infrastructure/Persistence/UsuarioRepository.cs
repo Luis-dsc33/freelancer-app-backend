@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Usuarios.Application.Interfaces;
 using Usuarios.Domain.Entities;
 
@@ -12,6 +12,19 @@ public class UsuarioRepository : IUsuarioRepository
     public Task<Usuario?> ObtenerPorIdAsync(Guid id, CancellationToken cancellationToken) =>
         _context.Usuarios.AsNoTracking().Include(u => u.Rol)
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
+    public async Task<IReadOnlyDictionary<Guid, string>> ObtenerNombresPorIdsAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken)
+    {
+        var listaIds = ids.Where(id => id != Guid.Empty).Distinct().ToList();
+        if (listaIds.Count == 0)
+            return new Dictionary<Guid, string>();
+
+        return await _context.Usuarios.AsNoTracking()
+            .Where(u => listaIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.Nombre, cancellationToken);
+    }
 
     public async Task<bool> ExisteEmailAsync(string email) =>
         await _context.Usuarios.AnyAsync(u => u.Email == email);

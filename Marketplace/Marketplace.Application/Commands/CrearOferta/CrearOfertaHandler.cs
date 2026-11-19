@@ -35,7 +35,7 @@ public sealed class CrearOfertaHandler(
             FechaLimite = request.FechaLimite,
             FechaEntregaEstimada = request.FechaEntregaEstimada,
             ClienteId = currentUser.UserId,
-            NombreCliente = "Cliente",
+            NombreCliente = string.IsNullOrWhiteSpace(currentUser.Nombre) ? "Cliente" : currentUser.Nombre,
             Modalidad = request.Modalidad,
             Ubicacion = request.Ubicacion?.Trim(),
             Alcance = request.Alcance?.Trim(),

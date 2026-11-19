@@ -10,22 +10,29 @@ namespace Marketplace.Api.Controllers;
 
 [ApiController]
 [Route("api/contratos")]
-[Authorize(Roles = "Cliente")]
+[Authorize(Roles = "Cliente,Estudiante")]
 public sealed class ContratosController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
+    [Authorize(Roles = "Cliente")]
     public async Task<IActionResult> Crear(CrearContratoRequest request, CancellationToken cancellationToken)
     {
         var resultado = await mediator.Send(new CrearContratoCommand(
             request.PostulacionId, request.ImporteAcordado,
             request.FechaInicio, request.FechaCompromiso), cancellationToken);
-        return CreatedAtAction(nameof(MisContratos), null, resultado);
+        return CreatedAtAction(nameof(ObtenerPorId), new { id = resultado.Id }, resultado);
     }
 
     [HttpGet("mis-contratos")]
     public async Task<IActionResult> MisContratos(CancellationToken cancellationToken)
     {
-        return Ok(await mediator.Send(new ListarContratosClienteQuery(), cancellationToken));
+        return Ok(await mediator.Send(new ListarMisContratosQuery(), cancellationToken));
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> ObtenerPorId(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await mediator.Send(new ObtenerContratoPorIdQuery(id), cancellationToken));
     }
 
     [HttpPut("{id:guid}/finalizar")]

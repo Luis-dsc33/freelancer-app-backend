@@ -90,6 +90,7 @@ public class MarketplaceDbContext : DbContext
             entity.Property(c => c.Estado).HasMaxLength(30).IsRequired();
             entity.HasIndex(c => c.PostulacionId).IsUnique();
             entity.HasIndex(c => new { c.ClienteId, c.Estado });
+            entity.HasIndex(c => new { c.EstudianteId, c.Estado });
             entity.HasOne(c => c.Postulacion)
                 .WithMany()
                 .HasForeignKey(c => c.PostulacionId)

@@ -27,6 +27,18 @@ public class ExceptionHandlingMiddleware
             var errores = ex.Errors.Select(e => new { campo = e.PropertyName, mensaje = e.ErrorMessage });
             await EscribirAsync(context, HttpStatusCode.BadRequest, new { errores });
         }
+        // ADMIN Marcos: HU-21-04 el servicio dueño no respondió → 503, la medida no se aplicó
+        catch (Admin.Application.Exceptions.ServicioNoDisponibleException ex)
+        {
+            _logger.LogWarning(ex, "Servicio externo no disponible");
+            await EscribirAsync(context, HttpStatusCode.ServiceUnavailable, new { error = ex.Message });
+        }
+        // ADMIN Marcos: token sin identificador de administrador → 401
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Administrador no identificado");
+            await EscribirAsync(context, HttpStatusCode.Unauthorized, new { error = "No se pudo identificar al administrador." });
+        }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Regla de negocio rechazada");

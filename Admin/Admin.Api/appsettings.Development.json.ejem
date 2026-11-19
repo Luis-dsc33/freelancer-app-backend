@@ -8,12 +8,12 @@
     "Audience": "CodeBridgeUsuarios"
   },
   "Metricas": {
-    "UsarDatosDemostracion": true
+    "UsarDatosDemostracion": false
   },
   "Servicios": {
-    "UsuariosUrl": "http://localhost:PUERTO_USUARIOS/",
-    "MarketplaceUrl": "http://localhost:PUERTO_MARKETPLACE/",
-    "ResenasUrl": "http://localhost:PUERTO_RESENAS/",
+    "UsuariosUrl": "http://localhost:5210/",
+    "MarketplaceUrl": "http://localhost:5004/",
+    "ResenasUrl": "",
     "CasosUrl": ""
   }
 }

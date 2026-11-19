@@ -39,6 +39,7 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddValidatorsFromAssembly(typeof(ListarOportunidadesQuery).Assembly);
 
 builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
+builder.Services.AddScoped<IProyectoAdminRepository, ProyectoAdminRepository>(); // ADMIN Marcos: HU-21/26/28
 
 // --- Autenticación JWT (misma clave/issuer/audience que Usuarios.Api) ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection.Extensions; // ADMIN Marcos: TryAddTransient
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -70,6 +71,23 @@ else
     Registrar<ICasosClient, CasosClient>("Servicios:CasosUrl");
 }
 
+// ADMIN Marcos: HU-25 / HU-21 / HU-26 / HU-27 — bitácora, administrador actual y operaciones en servicios dueños.
+// Estas operaciones siempre usan los servicios reales (no hay versión de demostración).
+builder.Services.AddScoped<IAccionAdministrativaRepository, AccionAdministrativaRepository>();
+builder.Services.AddScoped<IUsuarioActual, Admin.Infrastructure.Security.UsuarioActual>();
+builder.Services.TryAddTransient<ReenviarTokenHandler>();
+
+void ConfigurarServicio(HttpClient http, string claveUrl)
+{
+    // URL vacía o inválida: la operación responde "servicio no disponible" (HU-21-04)
+    if (Uri.TryCreate(builder.Configuration[claveUrl], UriKind.Absolute, out var url)) http.BaseAddress = url;
+    http.Timeout = TimeSpan.FromSeconds(5);
+}
+builder.Services.AddHttpClient<IUsuariosAdminClient, UsuariosAdminClient>(http => ConfigurarServicio(http, "Servicios:UsuariosUrl"))
+    .AddHttpMessageHandler<ReenviarTokenHandler>();
+builder.Services.AddHttpClient<IMarketplaceAdminClient, MarketplaceAdminClient>(http => ConfigurarServicio(http, "Servicios:MarketplaceUrl"))
+    .AddHttpMessageHandler<ReenviarTokenHandler>();
+
 builder.Services.AddDbContext<AdminDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -133,5 +151,20 @@ app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// ADMIN Marcos: aplica las migraciones del schema "admin" al arrancar (igual que Usuarios y Marketplace)
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        scope.ServiceProvider.GetRequiredService<AdminDbContext>().Database.Migrate();
+        logger.LogInformation("Migraciones aplicadas correctamente.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error al aplicar migraciones de Entity Framework.");
+    }
+}
 
 app.Run();

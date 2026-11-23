@@ -9,6 +9,9 @@ using Usuarios.Application.Queries.ObtenerEstadisticasUsuarios;
 
 namespace Usuarios.Api.Controllers;
 
+// ADMIN Marcos: motivo que envía el servicio Admin al suspender (se muestra en el login)
+public record SuspenderUsuarioRequest(string? Motivo);
+
 [ApiController]
 [Route("api/admin")]
 [Authorize(Roles = "Administrador")]
@@ -23,8 +26,8 @@ public class AdminController(IMediator mediator) : ControllerBase
 
     // HU-21
     [HttpPost("usuarios/{id:guid}/suspender")]
-    public async Task<IActionResult> Suspender(Guid id, CancellationToken ct)
-        => Ok(await mediator.Send(new CambiarEstadoUsuarioCommand(id, Suspender: true), ct));
+    public async Task<IActionResult> Suspender(Guid id, [FromBody] SuspenderUsuarioRequest? request, CancellationToken ct)
+        => Ok(await mediator.Send(new CambiarEstadoUsuarioCommand(id, Suspender: true, request?.Motivo), ct));
 
     // HU-26
     [HttpPost("usuarios/{id:guid}/reactivar")]

@@ -56,10 +56,3 @@ public class ResenasFakeClient : IResenasClient
             PromedioGeneral: 4.2,
             DistribucionEstrellas: [new("1", 2), new("2", 3), new("3", 7), new("4", 19), new("5", 31)]));
 }
-
-public class CasosFakeClient : ICasosClient
-{
-    public Task<EstadisticasCasosDto> ObtenerEstadisticasAsync(CancellationToken ct) =>
-        Task.FromResult(new EstadisticasCasosDto(
-            Recibidos: 2, EnRevision: 3, PendientesInformacion: 1, Cerrados: 9, DiasPromedioCierre: 3.4));
-}

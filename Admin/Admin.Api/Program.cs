@@ -49,7 +49,6 @@ if (builder.Configuration.GetValue<bool>("Metricas:UsarDatosDemostracion"))
     builder.Services.AddScoped<IUsuariosClient, UsuariosFakeClient>();
     builder.Services.AddScoped<IMarketplaceClient, MarketplaceFakeClient>();
     builder.Services.AddScoped<IResenasClient, ResenasFakeClient>();
-    builder.Services.AddScoped<ICasosClient, CasosFakeClient>();
 }
 else
 {
@@ -69,7 +68,6 @@ else
     Registrar<IUsuariosClient, UsuariosClient>("Servicios:UsuariosUrl");
     Registrar<IMarketplaceClient, MarketplaceClient>("Servicios:MarketplaceUrl");
     Registrar<IResenasClient, ResenasClient>("Servicios:ResenasUrl");
-    Registrar<ICasosClient, CasosClient>("Servicios:CasosUrl");
 }
 
 // ADMIN Marcos: HU-25 / HU-21 / HU-26 / HU-27 — bitácora, administrador actual y operaciones en servicios dueños.

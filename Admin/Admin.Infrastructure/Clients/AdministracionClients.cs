@@ -13,13 +13,15 @@ namespace Admin.Infrastructure.Clients;
 
 public abstract class ClienteAdministracion(HttpClient http, string servicio)
 {
-    protected async Task<T> EnviarAsync<T>(HttpMethod metodo, string ruta, CancellationToken ct)
+    protected async Task<T> EnviarAsync<T>(HttpMethod metodo, string ruta, CancellationToken ct, object? cuerpo = null)
     {
         HttpResponseMessage respuesta;
         try
         {
             if (http.BaseAddress is null) throw new InvalidOperationException("URL no configurada");
-            respuesta = await http.SendAsync(new HttpRequestMessage(metodo, ruta), ct);
+            var mensaje = new HttpRequestMessage(metodo, ruta);
+            if (cuerpo is not null) mensaje.Content = JsonContent.Create(cuerpo); // ADMIN Marcos: ej. {motivo} al suspender
+            respuesta = await http.SendAsync(mensaje, ct);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException && !ct.IsCancellationRequested)
         {
@@ -58,8 +60,8 @@ public class UsuariosAdminClient(HttpClient http) : ClienteAdministracion(http, 
         return EnviarAsync<PaginaUsuariosDto>(HttpMethod.Get, ruta, ct);
     }
 
-    public Task<UsuarioDto> SuspenderAsync(Guid usuarioId, CancellationToken ct) =>
-        EnviarAsync<UsuarioDto>(HttpMethod.Post, $"api/admin/usuarios/{usuarioId}/suspender", ct);
+    public Task<UsuarioDto> SuspenderAsync(Guid usuarioId, string motivo, CancellationToken ct) =>
+        EnviarAsync<UsuarioDto>(HttpMethod.Post, $"api/admin/usuarios/{usuarioId}/suspender", ct, new { motivo });
 
     public Task<UsuarioDto> ReactivarAsync(Guid usuarioId, CancellationToken ct) =>
         EnviarAsync<UsuarioDto>(HttpMethod.Post, $"api/admin/usuarios/{usuarioId}/reactivar", ct);

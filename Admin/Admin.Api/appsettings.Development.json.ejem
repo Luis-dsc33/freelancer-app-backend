@@ -13,7 +13,6 @@
   "Servicios": {
     "UsuariosUrl": "http://localhost:5210/",
     "MarketplaceUrl": "http://localhost:5004/",
-    "ResenasUrl": "",
-    "CasosUrl": ""
+    "ResenasUrl": ""
   }
 }

@@ -47,6 +47,14 @@ public class ExceptionHandlingMiddleware
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message }));
         }
+        // ADMIN Marcos: HU-02-03 cuenta suspendida → 403 con el motivo para que el front lo muestre
+        catch (CuentaSuspendidaException ex)
+        {
+            _logger.LogInformation("Inicio de sesión rechazado: cuenta suspendida");
+            context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = ex.Message, motivo = ex.Motivo }));
+        }
         catch (RecursoNoEncontradoException ex)
         {
             context.Response.StatusCode = (int)HttpStatusCode.NotFound;

@@ -29,10 +29,3 @@ public record EstadisticasResenasDto(
     double? PromedioGeneral,
     IReadOnlyList<ConteoDto> DistribucionEstrellas);
 
-// Casos de conflicto (HU-23/HU-24). Su ubicación depende del acuerdo A-04.
-public record EstadisticasCasosDto(
-    int Recibidos,
-    int EnRevision,
-    int PendientesInformacion,
-    int Cerrados,
-    double? DiasPromedioCierre);

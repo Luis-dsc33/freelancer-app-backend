@@ -18,7 +18,7 @@ public class AplicarMedidaModeracionHandler(
     {
         var (recursoTipo, recursoNombre) = request.TipoAccion switch
         {
-            AccionAdministrativa.Suspender => DeUsuario(await usuarios.SuspenderAsync(request.RecursoId, ct)),
+            AccionAdministrativa.Suspender => DeUsuario(await usuarios.SuspenderAsync(request.RecursoId, request.Motivo.Trim(), ct)),
             AccionAdministrativa.Reactivar => DeUsuario(await usuarios.ReactivarAsync(request.RecursoId, ct)),
             AccionAdministrativa.Ocultar => DeOferta(await marketplace.OcultarAsync(request.RecursoId, ct)),
             AccionAdministrativa.Restaurar => DeOferta(await marketplace.RestaurarAsync(request.RecursoId, ct)),

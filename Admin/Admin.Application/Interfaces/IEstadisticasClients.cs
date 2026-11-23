@@ -20,11 +20,6 @@ public interface IResenasClient
     Task<EstadisticasResenasDto> ObtenerEstadisticasAsync(CancellationToken ct);
 }
 
-public interface ICasosClient
-{
-    Task<EstadisticasCasosDto> ObtenerEstadisticasAsync(CancellationToken ct);
-}
-
 public interface IMetricasSettings
 {
     // true = se usan datos de demostración (clientes Fake). El panel lo muestra con una etiqueta visible.

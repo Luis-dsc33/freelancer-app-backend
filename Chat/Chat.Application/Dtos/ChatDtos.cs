@@ -20,6 +20,17 @@ public sealed record MensajeChatDto(
     string Contenido,
     DateTime EnviadoEn);
 
+public sealed record ChatConexionDto(
+    Guid UsuarioId,
+    Guid ConversacionId,
+    string ConnectionId,
+    DateTime ConectadoEn);
+
+public sealed record ChatConectadoDto(
+    Guid UsuarioId,
+    string ConnectionId,
+    DateTime ConectadoEn);
+
 public sealed record AbrirConversacionResult(
     ConversacionChatDto Conversacion,
     bool EsNueva);

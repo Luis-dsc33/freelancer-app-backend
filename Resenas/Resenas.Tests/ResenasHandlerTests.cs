@@ -2,6 +2,7 @@ using FluentValidation.TestHelper;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Resenas.Application.Commands.CalificarCliente;
+using Resenas.Application.Commands.CalificarEstudiante;
 using Resenas.Application.Exceptions;
 using Resenas.Application.Interfaces;
 using Resenas.Application.Queries.ObtenerEstadisticasResenas;
@@ -102,6 +103,73 @@ public class ResenasHandlerTests
     }
 
     [Fact]
+    public async Task CalificarEstudiante_ContratoFinalizado_UsaClienteJwtYGuardaResena()
+    {
+        var clienteId = Guid.NewGuid();
+        var estudianteId = Guid.NewGuid();
+        var contratoId = Guid.NewGuid();
+        var repo = new Mock<IResenaRepository>();
+        var marketplace = new Mock<IMarketplaceContratosClient>();
+        marketplace.Setup(x => x.ObtenerContratoAsync(contratoId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContratoResumenDto(contratoId, Guid.NewGuid(), Guid.NewGuid(), clienteId, estudianteId, "Finalizado", null, null));
+        repo.Setup(x => x.ExisteAsync(contratoId, clienteId, estudianteId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        Resena? guardada = null;
+        repo.Setup(x => x.AgregarAsync(It.IsAny<Resena>(), It.IsAny<CancellationToken>()))
+            .Callback<Resena, CancellationToken>((r, _) => guardada = r)
+            .Returns(Task.CompletedTask);
+
+        var handler = new CalificarEstudianteHandler(repo.Object, marketplace.Object, UsuarioCliente(clienteId));
+
+        var resultado = await handler.Handle(
+            new CalificarEstudianteCommand(contratoId, 5, "Excelente trabajo"),
+            CancellationToken.None);
+
+        Assert.NotNull(guardada);
+        Assert.Equal(clienteId, guardada!.AutorId);
+        Assert.Equal(estudianteId, guardada.DestinatarioId);
+        Assert.Equal(5, resultado.Puntuacion);
+    }
+
+    [Fact]
+    public async Task CalificarEstudiante_ContratoDeOtroCliente_LanzaUnauthorizedAccessException()
+    {
+        var clienteId = Guid.NewGuid();
+        var contratoId = Guid.NewGuid();
+        var marketplace = new Mock<IMarketplaceContratosClient>();
+        marketplace.Setup(x => x.ObtenerContratoAsync(contratoId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContratoResumenDto(contratoId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Finalizado", null, null));
+
+        var handler = new CalificarEstudianteHandler(
+            new Mock<IResenaRepository>().Object,
+            marketplace.Object,
+            UsuarioCliente(clienteId));
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            handler.Handle(new CalificarEstudianteCommand(contratoId, 4, "Bueno"), CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CalificarEstudiante_ResenaDuplicada_LanzaConflictException()
+    {
+        var clienteId = Guid.NewGuid();
+        var estudianteId = Guid.NewGuid();
+        var contratoId = Guid.NewGuid();
+        var repo = new Mock<IResenaRepository>();
+        var marketplace = new Mock<IMarketplaceContratosClient>();
+        marketplace.Setup(x => x.ObtenerContratoAsync(contratoId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ContratoResumenDto(contratoId, Guid.NewGuid(), Guid.NewGuid(), clienteId, estudianteId, "Finalizado", null, null));
+        repo.Setup(x => x.ExisteAsync(contratoId, clienteId, estudianteId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var handler = new CalificarEstudianteHandler(repo.Object, marketplace.Object, UsuarioCliente(clienteId));
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            handler.Handle(new CalificarEstudianteCommand(contratoId, 4, "Duplicada"), CancellationToken.None));
+    }
+
+    [Fact]
     public async Task ObtenerReputacionUsuario_CalculaPromedioYTotalCorrectamente()
     {
         var usuarioId = Guid.NewGuid();
@@ -169,6 +237,16 @@ public class ResenasHandlerTests
         mock.SetupGet(x => x.UserId).Returns(id);
         mock.SetupGet(x => x.Role).Returns("Estudiante");
         mock.SetupGet(x => x.EsEstudiante).Returns(true);
+        return mock.Object;
+    }
+
+    private static ICurrentUserService UsuarioCliente(Guid id)
+    {
+        var mock = new Mock<ICurrentUserService>();
+        mock.SetupGet(x => x.IsAuthenticated).Returns(true);
+        mock.SetupGet(x => x.UserId).Returns(id);
+        mock.SetupGet(x => x.Role).Returns("Cliente");
+        mock.SetupGet(x => x.EsCliente).Returns(true);
         return mock.Object;
     }
 }

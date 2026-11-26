@@ -11,5 +11,4 @@ public record MetricasPanelDto(
     bool EsDemostracion,
     EstadisticasUsuariosDto? Usuarios,
     EstadisticasMarketplaceDto? Marketplace,
-    EstadisticasResenasDto? Resenas,
-    EstadisticasCasosDto? Casos);
+    EstadisticasResenasDto? Resenas); // ADMIN Marcos: sin casos de disputas (HU-24 fuera de alcance)

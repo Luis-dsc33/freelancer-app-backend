@@ -5,4 +5,5 @@ using Usuarios.Application.Queries.BuscarUsuariosAdmin;
 
 namespace Usuarios.Application.Commands.CambiarEstadoUsuario;
 
-public record CambiarEstadoUsuarioCommand(Guid UsuarioId, bool Suspender) : IRequest<UsuarioAdminDto>;
+// ADMIN Marcos: Motivo se guarda al suspender para mostrarlo en el login (HU-02-03)
+public record CambiarEstadoUsuarioCommand(Guid UsuarioId, bool Suspender, string? Motivo = null) : IRequest<UsuarioAdminDto>;

@@ -27,8 +27,9 @@ public class IniciarSesionHandler : IRequestHandler<IniciarSesionCommand, Inicia
 
         // HU-02 Escenario 02-03: cuenta suspendida — aquí sí es correcto ser específico,
         // porque las credenciales ya se validaron correctamente.
+        // ADMIN Marcos: responde 403 con el motivo de la suspensión (antes era un 400 genérico)
         if (usuario.Estado != "Activo")
-            throw new InvalidOperationException("Tu cuenta está suspendida. Contacta a un administrador.");
+            throw new Usuarios.Application.Exceptions.CuentaSuspendidaException(usuario.MotivoSuspension);
 
         var (token, expiraEn) = _jwtService.GenerarToken(usuario);
         return new IniciarSesionResultado(token, expiraEn, usuario.Nombre, usuario.Rol.Nombre);

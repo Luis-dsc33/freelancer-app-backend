@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Chat.Application.Dtos;
 using Chat.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -10,13 +10,22 @@ public sealed class ChatHub(IConversacionRepository conversaciones) : Hub
 {
     public static string GrupoConversacion(Guid conversacionId) => $"conv-{conversacionId}";
 
+    public override async Task OnConnectedAsync()
+    {
+        if (!Guid.TryParse(Context.UserIdentifier, out var userId) || userId == Guid.Empty)
+            throw new HubException("Usuario no identificado.");
+
+        await Clients.Caller.SendAsync(
+            "Conectado",
+            new ChatConectadoDto(userId, Context.ConnectionId, DateTime.UtcNow),
+            Context.ConnectionAborted);
+
+        await base.OnConnectedAsync();
+    }
+
     public async Task JoinConversation(Guid conversacionId)
     {
-        var userIdValue = Context.UserIdentifier
-            ?? Context.User?.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? Context.User?.FindFirstValue("sub");
-
-        if (!Guid.TryParse(userIdValue, out var userId) || userId == Guid.Empty)
+        if (!Guid.TryParse(Context.UserIdentifier, out var userId) || userId == Guid.Empty)
             throw new HubException("Usuario no identificado.");
 
         var esParticipante = await conversaciones.EsParticipanteAsync(
@@ -28,6 +37,10 @@ public sealed class ChatHub(IConversacionRepository conversaciones) : Hub
             throw new HubException("No tienes permiso para unirte a esta conversación.");
 
         await Groups.AddToGroupAsync(Context.ConnectionId, GrupoConversacion(conversacionId), Context.ConnectionAborted);
+        await Clients.Group(GrupoConversacion(conversacionId)).SendAsync(
+            "ParticipanteConectado",
+            new ChatConexionDto(userId, conversacionId, Context.ConnectionId, DateTime.UtcNow),
+            Context.ConnectionAborted);
     }
 
     public Task LeaveConversation(Guid conversacionId) =>

@@ -30,6 +30,3 @@ public class MarketplaceClient(HttpClient http)
 public class ResenasClient(HttpClient http)
     : EstadisticasHttpClient<EstadisticasResenasDto>(http), IResenasClient;
 
-// Pendiente acuerdo A-04: si los casos viven en Admin, esto se reemplaza por un repositorio propio.
-public class CasosClient(HttpClient http)
-    : EstadisticasHttpClient<EstadisticasCasosDto>(http), ICasosClient;

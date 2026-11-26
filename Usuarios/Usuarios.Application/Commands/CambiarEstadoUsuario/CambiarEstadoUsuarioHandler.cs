@@ -26,6 +26,7 @@ public class CambiarEstadoUsuarioHandler(IUsuarioAdminRepository repositorio)
             if (usuario.Estado == EstadoSuspendido)
                 throw new InvalidOperationException("La cuenta ya está suspendida.");
             usuario.Estado = EstadoSuspendido;
+            usuario.MotivoSuspension = string.IsNullOrWhiteSpace(request.Motivo) ? null : request.Motivo.Trim();
         }
         else
         {
@@ -33,6 +34,7 @@ public class CambiarEstadoUsuarioHandler(IUsuarioAdminRepository repositorio)
             if (usuario.Estado == EstadoActivo)
                 throw new InvalidOperationException("La cuenta ya está activa.");
             usuario.Estado = EstadoActivo;
+            usuario.MotivoSuspension = null; // ADMIN Marcos: ya no hay suspensión vigente
         }
 
         await repositorio.GuardarCambiosAsync(ct);

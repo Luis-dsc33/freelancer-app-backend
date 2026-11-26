@@ -30,7 +30,7 @@ public interface IUsuarioActual
 public interface IUsuariosAdminClient
 {
     Task<PaginaUsuariosDto> BuscarAsync(string? busqueda, string? rol, string? estado, int pagina, int tamanoPagina, CancellationToken ct);
-    Task<UsuarioDto> SuspenderAsync(Guid usuarioId, CancellationToken ct);
+    Task<UsuarioDto> SuspenderAsync(Guid usuarioId, string motivo, CancellationToken ct); // ADMIN Marcos: el motivo se muestra en el login
     Task<UsuarioDto> ReactivarAsync(Guid usuarioId, CancellationToken ct);
 }
 
